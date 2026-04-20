@@ -24,25 +24,25 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D6FD44762F969774009E7550 /* MoralityvsMortality.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoralityvsMortality.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D6FD44832F969774009E7550 /* MoralityvsMortalityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoralityvsMortalityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D6FD448D2F969774009E7550 /* MoralityvsMortalityUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoralityvsMortalityUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D6FD44762F969774009E7550 /* MoralityVsMortality.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoralityVsMortality.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D6FD44832F969774009E7550 /* MoralityVsMortalityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoralityVsMortalityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D6FD448D2F969774009E7550 /* MoralityVsMortalityUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoralityVsMortalityUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D6FD44782F969774009E7550 /* MoralityvsMortality */ = {
+		D6FD44782F969774009E7550 /* MoralityVsMortality */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MoralityvsMortality;
+			path = MoralityVsMortality;
 			sourceTree = "<group>";
 		};
-		D6FD44862F969774009E7550 /* MoralityvsMortalityTests */ = {
+		D6FD44862F969774009E7550 /* MoralityVsMortalityTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MoralityvsMortalityTests;
+			path = MoralityVsMortalityTests;
 			sourceTree = "<group>";
 		};
-		D6FD44902F969774009E7550 /* MoralityvsMortalityUITests */ = {
+		D6FD44902F969774009E7550 /* MoralityVsMortalityUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MoralityvsMortalityUITests;
+			path = MoralityVsMortalityUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		D6FD446D2F969774009E7550 = {
 			isa = PBXGroup;
 			children = (
-				D6FD44782F969774009E7550 /* MoralityvsMortality */,
-				D6FD44862F969774009E7550 /* MoralityvsMortalityTests */,
-				D6FD44902F969774009E7550 /* MoralityvsMortalityUITests */,
+				D6FD44782F969774009E7550 /* MoralityVsMortality */,
+				D6FD44862F969774009E7550 /* MoralityVsMortalityTests */,
+				D6FD44902F969774009E7550 /* MoralityVsMortalityUITests */,
 				D6FD44772F969774009E7550 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		D6FD44772F969774009E7550 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D6FD44762F969774009E7550 /* MoralityvsMortality.app */,
-				D6FD44832F969774009E7550 /* MoralityvsMortalityTests.xctest */,
-				D6FD448D2F969774009E7550 /* MoralityvsMortalityUITests.xctest */,
+				D6FD44762F969774009E7550 /* MoralityVsMortality.app */,
+				D6FD44832F969774009E7550 /* MoralityVsMortalityTests.xctest */,
+				D6FD448D2F969774009E7550 /* MoralityVsMortalityUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D6FD44752F969774009E7550 /* MoralityvsMortality */ = {
+		D6FD44752F969774009E7550 /* MoralityVsMortality */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D6FD44972F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityvsMortality" */;
+			buildConfigurationList = D6FD44972F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityVsMortality" */;
 			buildPhases = (
 				D6FD44722F969774009E7550 /* Sources */,
 				D6FD44732F969774009E7550 /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D6FD44782F969774009E7550 /* MoralityvsMortality */,
+				D6FD44782F969774009E7550 /* MoralityVsMortality */,
 			);
-			name = MoralityvsMortality;
+			name = MoralityVsMortality;
 			packageProductDependencies = (
 			);
 			productName = MoralityvsMortality;
-			productReference = D6FD44762F969774009E7550 /* MoralityvsMortality.app */;
+			productReference = D6FD44762F969774009E7550 /* MoralityVsMortality.app */;
 			productType = "com.apple.product-type.application";
 		};
-		D6FD44822F969774009E7550 /* MoralityvsMortalityTests */ = {
+		D6FD44822F969774009E7550 /* MoralityVsMortalityTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D6FD449A2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityvsMortalityTests" */;
+			buildConfigurationList = D6FD449A2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityVsMortalityTests" */;
 			buildPhases = (
 				D6FD447F2F969774009E7550 /* Sources */,
 				D6FD44802F969774009E7550 /* Frameworks */,
@@ -131,18 +131,18 @@
 				D6FD44852F969774009E7550 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D6FD44862F969774009E7550 /* MoralityvsMortalityTests */,
+				D6FD44862F969774009E7550 /* MoralityVsMortalityTests */,
 			);
-			name = MoralityvsMortalityTests;
+			name = MoralityVsMortalityTests;
 			packageProductDependencies = (
 			);
 			productName = MoralityvsMortalityTests;
-			productReference = D6FD44832F969774009E7550 /* MoralityvsMortalityTests.xctest */;
+			productReference = D6FD44832F969774009E7550 /* MoralityVsMortalityTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		D6FD448C2F969774009E7550 /* MoralityvsMortalityUITests */ = {
+		D6FD448C2F969774009E7550 /* MoralityVsMortalityUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D6FD449D2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityvsMortalityUITests" */;
+			buildConfigurationList = D6FD449D2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityVsMortalityUITests" */;
 			buildPhases = (
 				D6FD44892F969774009E7550 /* Sources */,
 				D6FD448A2F969774009E7550 /* Frameworks */,
@@ -154,13 +154,13 @@
 				D6FD448F2F969774009E7550 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D6FD44902F969774009E7550 /* MoralityvsMortalityUITests */,
+				D6FD44902F969774009E7550 /* MoralityVsMortalityUITests */,
 			);
-			name = MoralityvsMortalityUITests;
+			name = MoralityVsMortalityUITests;
 			packageProductDependencies = (
 			);
 			productName = MoralityvsMortalityUITests;
-			productReference = D6FD448D2F969774009E7550 /* MoralityvsMortalityUITests.xctest */;
+			productReference = D6FD448D2F969774009E7550 /* MoralityVsMortalityUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = D6FD44712F969774009E7550 /* Build configuration list for PBXProject "MoralityvsMortality" */;
+			buildConfigurationList = D6FD44712F969774009E7550 /* Build configuration list for PBXProject "MoralityVsMortality" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D6FD44752F969774009E7550 /* MoralityvsMortality */,
-				D6FD44822F969774009E7550 /* MoralityvsMortalityTests */,
-				D6FD448C2F969774009E7550 /* MoralityvsMortalityUITests */,
+				D6FD44752F969774009E7550 /* MoralityVsMortality */,
+				D6FD44822F969774009E7550 /* MoralityVsMortalityTests */,
+				D6FD448C2F969774009E7550 /* MoralityVsMortalityUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		D6FD44852F969774009E7550 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D6FD44752F969774009E7550 /* MoralityvsMortality */;
+			target = D6FD44752F969774009E7550 /* MoralityVsMortality */;
 			targetProxy = D6FD44842F969774009E7550 /* PBXContainerItemProxy */;
 		};
 		D6FD448F2F969774009E7550 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D6FD44752F969774009E7550 /* MoralityvsMortality */;
+			target = D6FD44752F969774009E7550 /* MoralityVsMortality */;
 			targetProxy = D6FD448E2F969774009E7550 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -494,7 +494,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MoralityvsMortality.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MoralityvsMortality";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MoralityVsMortality.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MoralityVsMortality";
 				XROS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Debug;
@@ -520,7 +520,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MoralityvsMortality.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MoralityvsMortality";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MoralityVsMortality.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MoralityVsMortality";
 				XROS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Release;
@@ -578,7 +578,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D6FD44712F969774009E7550 /* Build configuration list for PBXProject "MoralityvsMortality" */ = {
+		D6FD44712F969774009E7550 /* Build configuration list for PBXProject "MoralityVsMortality" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D6FD44952F969774009E7550 /* Debug */,
@@ -587,7 +587,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6FD44972F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityvsMortality" */ = {
+		D6FD44972F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityVsMortality" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D6FD44982F969774009E7550 /* Debug */,
@@ -596,7 +596,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6FD449A2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityvsMortalityTests" */ = {
+		D6FD449A2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityVsMortalityTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D6FD449B2F969774009E7550 /* Debug */,
@@ -605,7 +605,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D6FD449D2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityvsMortalityUITests" */ = {
+		D6FD449D2F969774009E7550 /* Build configuration list for PBXNativeTarget "MoralityVsMortalityUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D6FD449E2F969774009E7550 /* Debug */,
