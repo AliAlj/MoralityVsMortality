@@ -143,24 +143,29 @@ struct InvestigationArea: Identifiable {
     let description: String
     let position: CGPoint
     let size: CGSize
+    let imageName: String?
     let evidence: Evidence?
+    let revealedImageName: String?
     var hasBeenSearched: Bool
 
     init(name: String, description: String, position: CGPoint,
-         size: CGSize, evidence: Evidence? = nil) {
+         size: CGSize, imageName: String? = nil, evidence: Evidence? = nil,
+         revealedImageName: String? = nil) {
         self.id = UUID()
         self.name = name
         self.description = description
         self.position = position
         self.size = size
+        self.imageName = imageName
         self.evidence = evidence
+        self.revealedImageName = revealedImageName
         self.hasBeenSearched = false
     }
 }
 
 enum InvestigationRoom: String, CaseIterable {
-    case hospitalRoom = "Hospital Room"
     case jailCell     = "Jail Cell"
+    case hospitalRoom = "Hospital Room"
 
     var label: String {
         switch self {
@@ -173,6 +178,13 @@ enum InvestigationRoom: String, CaseIterable {
         switch self {
         case .hospitalRoom: return "HOSPITAL WING"
         case .jailCell:     return "JAIL CELL"
+        }
+    }
+
+    var imageName: String {
+        switch self {
+        case .hospitalRoom: return "hospitalRoom"
+        case .jailCell:     return "jailCell"
         }
     }
 }

@@ -11,10 +11,11 @@ struct Act1InvestigationView: View {
 // MARK: - Act 1: Scene Investigation View Model
 @MainActor
 class Act1ViewModel: ObservableObject {
-    @Published var currentRoom: InvestigationRoom = .hospitalRoom
+    @Published var currentRoom: InvestigationRoom = .jailCell
     @Published var hospitalRoomAreas: [InvestigationArea] = []
     @Published var jailCellAreas: [InvestigationArea] = []
     @Published var showingEvidenceDetail: Evidence? = nil
+    @Published var showingRevealedImage: String? = nil
     
     var investigationAreas: [InvestigationArea] {
         switch currentRoom {
@@ -34,24 +35,11 @@ class Act1ViewModel: ObservableObject {
     private func setupHospitalRoomAreas() {
         hospitalRoomAreas = [
             InvestigationArea(
-                name: "Hospital Bed",
-                description: "The victim's bed shows signs of struggle",
-                position: CGPoint(x: 300, y: 200),
+                name: "Syringe",
+                description: "A syringe found under the hospital bed",
+                position: CGPoint(x: 300, y: 325),
                 size: CGSize(width: 120, height: 80),
-                evidence: Evidence(
-                    name: "Bloody Pillow",
-                    description: "Pillow with blood stains, suggests head trauma",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .physical,
-                    metadata: ["location": "bed", "appearance": "dried stains"]
-                )
-            ),
-            InvestigationArea(
-                name: "Bedside Table",
-                description: "Small table with medical supplies",
-                position: CGPoint(x: 450, y: 180),
-                size: CGSize(width: 80, height: 60),
+                imageName: "syringe",
                 evidence: Evidence(
                     name: "Syringe",
                     description: "Empty syringe with traces of unknown substance",
@@ -62,51 +50,9 @@ class Act1ViewModel: ObservableObject {
                 )
             ),
             InvestigationArea(
-                name: "Window",
-                description: "Large window overlooking the parking lot",
-                position: CGPoint(x: 600, y: 100),
-                size: CGSize(width: 100, height: 120),
-                evidence: Evidence(
-                    name: "Scuff Marks",
-                    description: "Fresh scuff marks on the window frame",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .physical,
-                    metadata: ["height": "6 feet", "direction": "entering"]
-                )
-            ),
-            InvestigationArea(
-                name: "Floor Area",
-                description: "Tiled floor near the door",
-                position: CGPoint(x: 200, y: 350),
-                size: CGSize(width: 150, height: 100),
-                evidence: Evidence(
-                    name: "Bloody Glove",
-                    description: "Latex glove with blood evidence, partially hidden",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .physical,
-                    metadata: ["appearance": "dark stains visible", "size": "large"]
-                )
-            ),
-            InvestigationArea(
-                name: "Waste Basket",
-                description: "Small medical waste container",
-                position: CGPoint(x: 100, y: 300),
-                size: CGSize(width: 60, height: 80),
-                evidence: Evidence(
-                    name: "Empty Candy Wrapper",
-                    description: "Chocolate bar wrapper - not relevant to case",
-                    actDiscovered: 1,
-                    isRealEvidence: false,
-                    evidenceType: .physical,
-                    metadata: ["brand": "SweetTooth", "relevance": "none"]
-                )
-            ),
-            InvestigationArea(
                 name: "Medical Cart",
                 description: "Wheeled cart with medical instruments",
-                position: CGPoint(x: 500, y: 350),
+                position: CGPoint(x: 90, y: 330),
                 size: CGSize(width: 80, height: 100),
                 evidence: Evidence(
                     name: "Hospital ID Badge",
@@ -116,34 +62,6 @@ class Act1ViewModel: ObservableObject {
                     evidenceType: .document,
                     metadata: ["owner": "Dr. Sarah Chen", "department": "Surgery"]
                 )
-            ),
-            InvestigationArea(
-                name: "Air Vent",
-                description: "Ceiling air vent above the bed",
-                position: CGPoint(x: 350, y: 50),
-                size: CGSize(width: 60, height: 40),
-                evidence: Evidence(
-                    name: "Dust Patterns",
-                    description: "Disturbed dust suggesting recent access",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .physical,
-                    metadata: ["disturbance": "recent", "access": "possible"]
-                )
-            ),
-            InvestigationArea(
-                name: "Bathroom Door",
-                description: "Partially open bathroom door",
-                position: CGPoint(x: 50, y: 150),
-                size: CGSize(width: 80, height: 120),
-                evidence: Evidence(
-                    name: "Tissue Paper",
-                    description: "Used tissue with lipstick - likely unrelated",
-                    actDiscovered: 1,
-                    isRealEvidence: false,
-                    evidenceType: .physical,
-                    metadata: ["color": "red", "relevance": "low"]
-                )
             )
         ]
     }
@@ -151,23 +69,9 @@ class Act1ViewModel: ObservableObject {
     private func setupJailCellAreas() {
         jailCellAreas = [
             InvestigationArea(
-                name: "Officer's Desk",
-                description: "The intake officer's desk with paperwork and files",
-                position: CGPoint(x: 100, y: 180),
-                size: CGSize(width: 90, height: 70),
-                evidence: Evidence(
-                    name: "Original License Photo",
-                    description: "A photocopy of the victim's original license from intake paperwork. The organ donor field clearly reads NO.",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .document,
-                    metadata: ["organ_donor": "no", "document_type": "intake photocopy"]
-                )
-            ),
-            InvestigationArea(
                 name: "Personal Belongings Box",
                 description: "Cardboard box with the victim's possessions, handed over by the officer",
-                position: CGPoint(x: 500, y: 180),
+                position: CGPoint(x: 600, y: 80),
                 size: CGSize(width: 100, height: 80),
                 evidence: Evidence(
                     name: "Victim's Prison License",
@@ -179,10 +83,11 @@ class Act1ViewModel: ObservableObject {
                 )
             ),
             InvestigationArea(
-                name: "Victim's Bunk",
-                description: "The victim's prison bed, neatly made",
-                position: CGPoint(x: 300, y: 200),
-                size: CGSize(width: 120, height: 80),
+                name: "Crumbled Paper",
+                description: "A crumbled piece of paper tucked under the bed",
+                position: CGPoint(x: 300, y: 380),
+                size: CGSize(width: 40, height: 35),
+                imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
                     description: "A heartfelt letter hidden under the pillow. 'I'll be waiting for you when you get out. We'll start over together. Love, Jen.'",
@@ -190,40 +95,13 @@ class Act1ViewModel: ObservableObject {
                     isRealEvidence: true,
                     evidenceType: .document,
                     metadata: ["author": "Nurse Jennifer Walsh", "tone": "romantic"]
-                )
-            ),
-            InvestigationArea(
-                name: "Bookshelf",
-                description: "Small shelf with a few worn paperbacks",
-                position: CGPoint(x: 150, y: 350),
-                size: CGSize(width: 80, height: 70),
-                evidence: Evidence(
-                    name: "Legal Documents",
-                    description: "The victim's release paperwork. Confirms he was scheduled for release in 3 days. The operation that brought him to the hospital was for a minor condition.",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .document,
-                    metadata: ["release_date": "3 days from incident", "operation": "minor condition"]
-                )
-            ),
-            InvestigationArea(
-                name: "Cell Wall",
-                description: "Concrete wall with scratch marks and faded graffiti",
-                position: CGPoint(x: 600, y: 120),
-                size: CGSize(width: 80, height: 100),
-                evidence: Evidence(
-                    name: "Tally Marks",
-                    description: "Days counted on the wall. The victim was counting down to release — only 3 days remained.",
-                    actDiscovered: 1,
-                    isRealEvidence: false,
-                    evidenceType: .physical,
-                    metadata: ["days_remaining": "3", "relevance": "atmosphere"]
-                )
+                ),
+                revealedImageName: "loveLetter"
             ),
             InvestigationArea(
                 name: "Under the Mattress",
                 description: "A common hiding spot in prison cells",
-                position: CGPoint(x: 350, y: 320),
+                position: CGPoint(x: 350, y: 380),
                 size: CGSize(width: 100, height: 60),
                 evidence: Evidence(
                     name: "Commissary Receipts",
@@ -233,13 +111,6 @@ class Act1ViewModel: ObservableObject {
                     evidenceType: .physical,
                     metadata: ["items": "snacks, soap, stamps", "relevance": "none"]
                 )
-            ),
-            InvestigationArea(
-                name: "Toilet Area",
-                description: "Standard prison cell fixture",
-                position: CGPoint(x: 550, y: 350),
-                size: CGSize(width: 70, height: 70),
-                evidence: nil
             )
         ]
     }
@@ -247,11 +118,15 @@ class Act1ViewModel: ObservableObject {
     func searchArea(_ area: InvestigationArea) {
         // Mark area as searched
         gameState.markAreaAsSearched(area.name)
-        
+
         // Add evidence if present
         if let evidence = area.evidence {
             gameState.addEvidence(evidence)
-            showingEvidenceDetail = evidence
+            if let revealedImage = area.revealedImageName {
+                showingRevealedImage = revealedImage
+            } else {
+                showingEvidenceDetail = evidence
+            }
         }
         
         // Update the area in the correct room's array
@@ -337,47 +212,75 @@ struct Act1SceneInvestigationView: View {
         .sheet(item: $viewModel.showingEvidenceDetail) { evidence in
             EvidenceDetailSheet(evidence: evidence)
         }
+        .overlay {
+            if let revealedImage = viewModel.showingRevealedImage {
+                ZStack {
+                    Color.black.opacity(0.7)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.showingRevealedImage = nil
+                        }
+
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button {
+                                viewModel.showingRevealedImage = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title)
+                                    .foregroundColor(.white)
+                            }
+                            .buttonStyle(.plain)
+                            .padding()
+                        }
+
+                        Image(revealedImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 650, maxHeight: 550)
+                            .cornerRadius(12)
+                            .shadow(radius: 20)
+
+                        Spacer()
+                    }
+                }
+            }
+        }
     }
 }
 
 // MARK: - Room Background
 struct RoomBackgroundView: View {
     let room: InvestigationRoom
-    
+
     var body: some View {
         ZStack {
-            // Room outline
-            Rectangle()
-                .stroke(Color.primary, lineWidth: 3)
-                .background(Color(NSColor.controlBackgroundColor))
-            
-            // Room features
+            // Room background image
+            Image(room.imageName)
+                .resizable()
+                .scaledToFill()
+                .clipped()
+
+            // Darkened overlay for readability
+            Color.black.opacity(0.3)
+
+            // Room subtitle
             VStack {
-                HStack {
-                    Text(room.label)
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .padding(4)
-                        .background(accentColor.opacity(0.2))
-                        .cornerRadius(4)
-                    
-                    Spacer()
-                }
-                
                 Spacer()
-                
+
                 HStack {
                     Spacer()
                     Text(room.subtitle)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.8))
                         .padding()
                 }
             }
             .padding()
         }
     }
-    
+
     private var accentColor: Color {
         switch room {
         case .hospitalRoom: return .blue
@@ -391,51 +294,73 @@ struct InvestigationAreaView: View {
     let area: InvestigationArea
     let isSearched: Bool
     let onTap: () -> Void
-    
+    @State private var isHovered = false
+
+    private var hasImage: Bool { area.imageName != nil }
+
     var body: some View {
         Button(action: onTap) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(backgroundColor)
-                .stroke(borderColor, lineWidth: 2)
-                .overlay(
+            ZStack {
+                if let imageName = area.imageName {
+                    // Asset-based item
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .brightness(isHovered && !isSearched ? 0.2 : 0)
+
+                    if isHovered && !isSearched {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white, lineWidth: 2)
+                            .shadow(color: .white.opacity(0.6), radius: 8)
+                    }
+                } else {
+                    // Blue highlighted box for items without an asset
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isSearched ? Color.green.opacity(0.2) : Color.blue.opacity(isHovered ? 0.3 : 0.15))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(isSearched ? Color.green : Color.blue.opacity(isHovered ? 0.8 : 0.5), lineWidth: 2)
+                        )
+                        .overlay(
+                            VStack {
+                                Text(area.name)
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.center)
+
+                                if isSearched {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                        .font(.caption)
+                                }
+                            }
+                            .padding(4)
+                        )
+                }
+
+                // Checkmark for asset-based items
+                if hasImage && isSearched {
                     VStack {
-                        Text(area.name)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .multilineTextAlignment(.center)
-                        
-                        if isSearched {
+                        Spacer()
+                        HStack {
+                            Spacer()
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
                                 .font(.caption)
-                        } else if area.evidence != nil {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.blue)
-                                .font(.caption)
+                                .shadow(radius: 2)
                         }
                     }
                     .padding(4)
-                )
+                }
+            }
         }
         .buttonStyle(.plain)
         .frame(width: area.size.width, height: area.size.height)
+        .onHover { hovering in
+            isHovered = hovering
+        }
         .help(area.description)
-    }
-    
-    private var backgroundColor: Color {
-        if isSearched {
-            return .green.opacity(0.2)
-        } else {
-            return .blue.opacity(0.1)
-        }
-    }
-    
-    private var borderColor: Color {
-        if isSearched {
-            return .green
-        } else {
-            return .blue.opacity(0.5)
-        }
     }
 }
 
@@ -560,4 +485,5 @@ struct EvidenceDetailSheet: View {
 #Preview {
     Act1SceneInvestigationView()
         .environmentObject(GameState())
+        .frame(width: 800, height: 600)
 }
