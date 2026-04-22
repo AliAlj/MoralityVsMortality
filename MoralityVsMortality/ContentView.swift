@@ -54,25 +54,47 @@ struct ActTitleCardView: View {
     let onFinished: () -> Void
 
     @State private var textOpacity: Double = 0
+    @State private var displayedTitle = ""
+    @State private var typingTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
             Color.black
                 .ignoresSafeArea()
 
-            Text("ACT \(act.romanNumeral)")
-                .font(.custom("Times New Roman", size: 64))
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .tracking(8)
-                .opacity(textOpacity)
+            VStack(spacing: 16) {
+                Text("ACT \(act.romanNumeral)")
+                    .font(.custom("Times New Roman", size: 64))
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .tracking(8)
+                    .opacity(textOpacity)
+
+                Text(displayedTitle)
+                    .font(.custom("Times New Roman", size: 28))
+                    .foregroundColor(.white.opacity(0.8))
+                    .tracking(4)
+                    .opacity(textOpacity)
+            }
         }
         .onAppear {
             withAnimation(.easeIn(duration: 1.0)) {
                 textOpacity = 1.0
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            typingTask = Task {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                for character in act.title {
+                    guard !Task.isCancelled else { return }
+                    displayedTitle.append(character)
+                    try? await Task.sleep(nanoseconds: 60_000_000)
+                }
+            }
+
+            let totalTitle = act.title
+            let typingDuration = 1.0 + Double(totalTitle.count) * 0.06 + 1.5
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + typingDuration) {
                 withAnimation(.easeOut(duration: 1.0)) {
                     textOpacity = 0
                 }
@@ -80,6 +102,9 @@ struct ActTitleCardView: View {
                     onFinished()
                 }
             }
+        }
+        .onDisappear {
+            typingTask?.cancel()
         }
     }
 }

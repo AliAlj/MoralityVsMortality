@@ -119,10 +119,10 @@ enum GameAct: Int, CaseIterable {
 
     var title: String {
         switch self {
-        case .investigation:  return "Scene Investigation"
-        case .interrogation:  return "Interrogation"
-        case .analysis:       return "Analysis"
-        case .confrontation:  return "Confrontation"
+        case .investigation:  return "The Investigation"
+        case .interrogation:  return "The Voices"
+        case .analysis:       return "The Web"
+        case .confrontation:  return "The Confrontation"
         }
     }
 
