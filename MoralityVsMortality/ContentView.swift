@@ -2,26 +2,84 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var gameState: GameState
+    @State private var showingActCard = true
+    @State private var lastAct: GameAct = .investigation
 
     var body: some View {
-        VStack(spacing: 0) {
-            HeaderView()
+        ZStack {
+            VStack(spacing: 0) {
+                HeaderView()
 
-            Divider()
+                Divider()
 
-            Group {
-                switch gameState.currentAct {
-                case .investigation:  Act1InvestigationView()
-                case .interrogation:  Act2InterrogationView()
-                case .analysis:       Act3AnalysisView()
-                case .confrontation:  Act4ConfrontationView()
+                Group {
+                    switch gameState.currentAct {
+                    case .investigation:  Act1InvestigationView()
+                    case .interrogation:  Act2InterrogationView()
+                    case .analysis:       Act3AnalysisView()
+                    case .confrontation:  Act4ConfrontationView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                Divider()
+
+                BottomNavigationView()
+            }
+            .opacity(showingActCard ? 0 : 1)
+
+            if showingActCard {
+                ActTitleCardView(act: gameState.currentAct) {
+                    withAnimation(.easeInOut(duration: 1.0)) {
+                        showingActCard = false
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .onChange(of: gameState.currentAct) { _, newAct in
+            if newAct != lastAct {
+                lastAct = newAct
+                showingActCard = true
+            }
+        }
+        .onAppear {
+            showingActCard = true
+        }
+    }
+}
 
-            Divider()
+// MARK: - Act Title Card
+struct ActTitleCardView: View {
+    let act: GameAct
+    let onFinished: () -> Void
 
-            BottomNavigationView()
+    @State private var textOpacity: Double = 0
+
+    var body: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+
+            Text("ACT \(act.romanNumeral)")
+                .font(.custom("Times New Roman", size: 64))
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .tracking(8)
+                .opacity(textOpacity)
+        }
+        .onAppear {
+            withAnimation(.easeIn(duration: 1.0)) {
+                textOpacity = 1.0
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                withAnimation(.easeOut(duration: 1.0)) {
+                    textOpacity = 0
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    onFinished()
+                }
+            }
         }
     }
 }

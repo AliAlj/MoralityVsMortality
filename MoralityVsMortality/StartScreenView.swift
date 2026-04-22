@@ -16,27 +16,16 @@ struct StartScreenView: View {
                 Spacer()
 
                 Button {
-                    if hasSeenIntro {
-                        screen = .game
-                    } else {
-                        screen = .intro
-                    }
+                    screen = .intro
                 } label: {
-                    Text(hasSeenIntro ? "Continue" : "Start")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 48)
-                        .padding(.vertical, 14)
-                        .background(Color.white.opacity(0.15))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.5), lineWidth: 1)
-                        )
+                    Image(hasSeenIntro ? "continueButton" : "startButton")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 100)
                 }
                 .buttonStyle(.plain)
-                .padding(.bottom, 80)
+
+                Spacer()
             }
         }
     }
@@ -63,15 +52,22 @@ struct IntroScreenView: View {
 
     var body: some View {
         ZStack {
+            Color.black
+                .ignoresSafeArea()
+
             Image("storyBackground")
                 .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
+                .scaledToFit()
+                .frame(maxWidth: 750, maxHeight: 550)
 
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
+            VStack(spacing: 0) {
+                Text("YOU'RE HIRED")
+                    .font(.largeTitle)
+                    .fontWeight(.heavy)
+                    .foregroundColor(.white)
+                    .tracking(4)
+                    .padding(.top, 60)
 
-            VStack {
                 Spacer()
 
                 Text(displayedText)
@@ -106,6 +102,12 @@ struct IntroScreenView: View {
                     .padding(.bottom, 60)
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if isTyping {
+                    skipTyping()
+                }
+            }
         }
         .onAppear {
             startTyping()
@@ -134,6 +136,15 @@ struct IntroScreenView: View {
             withAnimation(.easeIn(duration: 0.5)) {
                 showContinue = true
             }
+        }
+    }
+
+    private func skipTyping() {
+        typingTask?.cancel()
+        displayedText = pages[currentPage]
+        isTyping = false
+        withAnimation(.easeIn(duration: 0.5)) {
+            showContinue = true
         }
     }
 

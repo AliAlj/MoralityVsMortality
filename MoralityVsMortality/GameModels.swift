@@ -134,6 +134,15 @@ enum GameAct: Int, CaseIterable {
         case .confrontation:  return "Face Dr. Voss"
         }
     }
+
+    var romanNumeral: String {
+        switch self {
+        case .investigation:  return "I"
+        case .interrogation:  return "II"
+        case .analysis:       return "III"
+        case .confrontation:  return "IV"
+        }
+    }
 }
 
 // MARK: - Investigation
