@@ -74,7 +74,7 @@ class Act3ViewModel: ObservableObject {
                     DialogueResponse(
                         text: "That's mine! I must have dropped it. I was wondering where it went.",
                         suspectReaction: "Surprised but relieved",
-                        revealsEvidence: "Dr. Chen's Alibi",
+                        revealsEvidence: "Dr. Kazmir's Alibi",
                         changesRelationship: 2
                     )
                 ],
@@ -221,8 +221,13 @@ struct Act3InterrogationView: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 12) {
                             ForEach(viewModel.conversationHistory) { entry in
-                                ConversationBubbleView(entry: entry)
-                                    .id(entry.id)
+                                ConversationBubbleView(
+                                    entry: entry,
+                                    playerImage: gameState.selectedDetective,
+                                    suspectImage: viewModel.selectedSuspect?.portraitImage ?? "prisonSurgeon",
+                                    suspectName: viewModel.selectedSuspect?.name ?? "Suspect"
+                                )
+                                .id(entry.id)
                             }
                         }
                         .padding()
@@ -312,41 +317,47 @@ struct CooperationMeterView: View {
 
 struct ConversationBubbleView: View {
     let entry: ConversationEntry
-    
+    let playerImage: String
+    let suspectImage: String
+    var suspectName: String = "Suspect"
+
+    private var isPlayer: Bool { entry.speaker == .investigator }
+
     var body: some View {
-        HStack {
-            if entry.speaker == .investigator {
+        HStack(alignment: .bottom, spacing: 8) {
+            if isPlayer {
                 Spacer(minLength: 50)
+            } else {
+                portraitView(suspectImage)
             }
-            
-            VStack(alignment: entry.speaker == .investigator ? .trailing : .leading) {
+
+            VStack(alignment: isPlayer ? .trailing : .leading) {
                 Text(entry.text)
                     .padding()
-                    .background(bubbleColor)
+                    .background(isPlayer ? Color.blue.opacity(0.7) : Color.gray.opacity(0.3))
                     .cornerRadius(12)
-                    .foregroundColor(textColor)
-                
-                Text(speakerName)
+                    .foregroundColor(isPlayer ? .white : .primary)
+
+                Text(isPlayer ? "You" : suspectName)
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
-            
-            if entry.speaker == .suspect {
+
+            if isPlayer {
+                portraitView(playerImage)
+            } else {
                 Spacer(minLength: 50)
             }
         }
     }
-    
-    private var bubbleColor: Color {
-        entry.speaker == .investigator ? .blue.opacity(0.7) : .gray.opacity(0.3)
-    }
-    
-    private var textColor: Color {
-        entry.speaker == .investigator ? .white : .primary
-    }
-    
-    private var speakerName: String {
-        entry.speaker == .investigator ? "You" : "Dr. Chen"
+
+    private func portraitView(_ imageName: String) -> some View {
+        Image(imageName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 55, height: 55)
+            .clipShape(Circle())
+            .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 1))
     }
 }
 

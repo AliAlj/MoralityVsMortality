@@ -4,6 +4,10 @@ import Combine
 @MainActor
 class GameState: ObservableObject {
 
+    // MARK: - Player
+    @Published var playerName: String = ""
+    @Published var selectedDetective: String = "detectiveOne"
+
     // MARK: - Published
     @Published var currentAct: GameAct = .investigation
     @Published var collectedEvidence: [Evidence] = []
@@ -135,35 +139,39 @@ class GameState: ObservableObject {
     // MARK: - Private
     private func setupSuspects() {
         suspects = [
-            Suspect(name: "Dr. Elara Voss",
-                    description: "Lead surgeon. Access to all areas. Appears genuinely distressed.",
-                    suspicionLevel: 6, isUnlocked: true),
-            Suspect(name: "Warden Doyle",
-                    description: "Prison warden. Knew the victim personally.",
-                    suspicionLevel: 4, isUnlocked: false),
-            Suspect(name: "Nurse Katya Renn",
-                    description: "Night shift nurse. Seemed shaken when questioned.",
-                    suspicionLevel: 5, isUnlocked: false),
-            Suspect(name: "Guard Jenkins",
-                    description: "On duty that night. Suspiciously evasive about the footage.",
-                    suspicionLevel: 7, isUnlocked: false)
+            Suspect(name: "Dr. Victor Kazmir",
+                    description: "Head surgeon. Performed Wayne's surgery. Pronounced him dead.",
+                    suspicionLevel: 6, isUnlocked: true,
+                    portraitImage: "prisonSurgeon"),
+            Suspect(name: "Kathy Williams",
+                    description: "Wayne's nurse. Found him unconscious before surgery.",
+                    suspicionLevel: 5, isUnlocked: false,
+                    portraitImage: "prisonNurse"),
+            Suspect(name: "Jason Perry",
+                    description: "Prison security. On duty that night. Evasive about the footage.",
+                    suspicionLevel: 7, isUnlocked: false,
+                    portraitImage: "prisonGuard"),
+            Suspect(name: "Peter Simmons",
+                    description: "Morgue worker. Handled Wayne's body after death.",
+                    suspicionLevel: 4, isUnlocked: false,
+                    portraitImage: "prisonMorgueWorker")
         ]
     }
 
     private func checkForUnlockedDialogue() {
         // Unlock Katya when Love Letter is found
         if hasEvidence(named: "Love Letter"),
-           let i = suspects.firstIndex(where: { $0.name == "Nurse Katya Renn" }) {
+           let i = suspects.firstIndex(where: { $0.name == "Kathy Williams" }) {
             suspects[i].isUnlocked = true
         }
         // Unlock Doyle when Legal Documents found
         if hasEvidence(named: "Legal Documents"),
-           let i = suspects.firstIndex(where: { $0.name == "Warden Doyle" }) {
+           let i = suspects.firstIndex(where: { $0.name == "Peter Simmons" }) {
             suspects[i].isUnlocked = true
         }
         // Unlock Jenkins when any footage/security evidence found
         if hasEvidence(named: "Hospital ID Badge"),
-           let i = suspects.firstIndex(where: { $0.name == "Guard Jenkins" }) {
+           let i = suspects.firstIndex(where: { $0.name == "Jason Perry" }) {
             suspects[i].isUnlocked = true
         }
     }
@@ -193,7 +201,7 @@ class GameState: ObservableObject {
                 .uv: "No hidden markings — appears authentic."
             ],
             "Love Letter": [
-                .fingerprint: "Fingerprints match Nurse Katya Renn from staff records.",
+                .fingerprint: "Fingerprints match Kathy Williams from staff records.",
                 .uv: "Faint tear stains visible — the letter was emotionally significant."
             ],
             "Legal Documents": [
@@ -214,7 +222,7 @@ class GameState: ObservableObject {
             ("Hospital ID Badge", "Victim's Prison License", .method),
             ("Victim's Prison License", "Original License Photo", .method),
             ("Legal Documents", "Victim's Prison License", .motive),
-            ("Love Letter", "Nurse Katya Renn", .person),
+            ("Love Letter", "Kathy Williams", .person),
             ("Victim's Prison License", "Legal Documents", .motive)
         ]
 

@@ -56,11 +56,11 @@ class Act1ViewModel: ObservableObject {
                 size: CGSize(width: 80, height: 100),
                 evidence: Evidence(
                     name: "Hospital ID Badge",
-                    description: "Employee badge found under cart - Dr. Sarah Chen",
+                    description: "Employee badge found under cart - Dr. Victor Kazmir",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
-                    metadata: ["owner": "Dr. Sarah Chen", "department": "Surgery"]
+                    metadata: ["owner": "Dr. Victor Kazmir", "department": "Surgery"]
                 )
             )
         ]
@@ -94,7 +94,7 @@ class Act1ViewModel: ObservableObject {
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
-                    metadata: ["author": "Nurse Jennifer Walsh", "tone": "romantic"]
+                    metadata: ["author": "Kathy Williams", "tone": "romantic"]
                 ),
                 revealedImageName: "loveLetter"
             ),

@@ -53,16 +53,16 @@ class Act6ViewModel: ObservableObject {
         
         switch (score, correctConnections) {
         case (80..., 4...):
-            return "Dr. Chen, I have substantial evidence linking you to the attack on the patient in Room 342. Multiple pieces of evidence point to your involvement in what appears to be an illegal organ harvesting operation."
+            return "Dr. Kazmir, I have substantial evidence linking you to the attack on the patient in Room 342. Multiple pieces of evidence point to your involvement in what appears to be an illegal organ harvesting operation."
             
         case (60..<80, 3):
-            return "Dr. Chen, I have several concerning pieces of evidence that suggest your involvement in the incident. I'd like to give you a chance to explain before we proceed."
+            return "Dr. Kazmir, I have several concerning pieces of evidence that suggest your involvement in the incident. I'd like to give you a chance to explain before we proceed."
             
         case (40..<60, 2):
-            return "Dr. Chen, I have some evidence that raises questions about your whereabouts and actions last night. Can you help me understand what happened?"
+            return "Dr. Kazmir, I have some evidence that raises questions about your whereabouts and actions last night. Can you help me understand what happened?"
             
         default:
-            return "Dr. Chen, thank you for meeting with me again. I have a few more questions based on my investigation. I'm still trying to piece together what happened."
+            return "Dr. Kazmir, thank you for meeting with me again. I have a few more questions based on my investigation. I'm still trying to piece together what happened."
         }
     }
     
@@ -96,7 +96,7 @@ class Act6ViewModel: ObservableObject {
         options.append(
             AccusationOption(
                 title: "Accuse of assault",
-                description: "Charge Dr. Chen with assault on the patient",
+                description: "Charge Dr. Kazmir with assault on the patient",
                 requiredEvidence: ["Bloody Glove", "Syringe"],
                 outcome: .partialTruth,
                 response: "Yes, I did sedate him, but it was to save his life, not harm him."
@@ -107,7 +107,7 @@ class Act6ViewModel: ObservableObject {
             options.append(
                 AccusationOption(
                     title: "Accuse of illegal entry",
-                    description: "Charge Dr. Chen with unauthorized access using stolen credentials",
+                    description: "Charge Dr. Kazmir with unauthorized access using stolen credentials",
                     requiredEvidence: ["Hospital ID Badge"],
                     outcome: .falseAccusation,
                     response: "That's my own ID badge. I had every right to be there - I'm the attending physician."
@@ -131,7 +131,7 @@ class Act6ViewModel: ObservableObject {
             options.append(
                 AccusationOption(
                     title: "Request explanation",
-                    description: "Ask for Dr. Chen's version of events",
+                    description: "Ask for Dr. Kazmir's version of events",
                     requiredEvidence: [],
                     outcome: .needMoreEvidence,
                     response: "I can see you're still gathering information. Perhaps you should investigate more thoroughly before making accusations."
@@ -226,8 +226,13 @@ struct Act6ConfrontationView: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 12) {
                             ForEach(viewModel.confrontationDialogue) { entry in
-                                ConversationBubbleView(entry: entry)
-                                    .id(entry.id)
+                                ConversationBubbleView(
+                                    entry: entry,
+                                    playerImage: gameState.selectedDetective,
+                                    suspectImage: "prisonSurgeon",
+                                    suspectName: "Dr. Victor Kazmir"
+                                )
+                                .id(entry.id)
                             }
                         }
                         .padding()
@@ -315,7 +320,7 @@ struct CharacterPortraitsView: View {
                         Text("👩‍⚕️")
                             .font(.title)
                     )
-                Text("Dr. Chen")
+                Text("Dr. Kazmir")
                     .font(.caption)
                     .fontWeight(.medium)
             }
@@ -487,26 +492,26 @@ class Act7ViewModel: ObservableObject {
             // High performance - both options available
             finalChoices = [
                 FinalChoice(
-                    title: "Arrest Dr. Chen",
-                    description: "You have sufficient evidence to arrest Dr. Chen for assault and involvement in the organ trafficking ring. She will face trial, but the larger network may go underground.",
+                    title: "Arrest Dr. Kazmir",
+                    description: "You have sufficient evidence to arrest Dr. Kazmir for assault and involvement in the organ trafficking ring. She will face trial, but the larger network may go underground.",
                     outcome: .arrest,
                     requirements: "Strong evidence gathered",
                     consequences: "Justice served, but network may escape"
                 ),
                 FinalChoice(
-                    title: "Work with Dr. Chen",
-                    description: "Accept Dr. Chen's explanation that she was trying to expose the organ trafficking ring. Work together to take down the real perpetrators.",
+                    title: "Work with Dr. Kazmir",
+                    description: "Accept Dr. Kazmir's explanation that she was trying to expose the organ trafficking ring. Work together to take down the real perpetrators.",
                     outcome: .cooperation,
                     requirements: "High trust and evidence quality",
-                    consequences: "Larger network exposed, but Dr. Chen goes free"
+                    consequences: "Larger network exposed, but Dr. Kazmir goes free"
                 )
             ]
         } else if score >= 60 {
             // Medium performance - limited options
             finalChoices = [
                 FinalChoice(
-                    title: "Arrest Dr. Chen",
-                    description: "While the evidence isn't overwhelming, there's enough to charge Dr. Chen with assault. The case may not hold up in court without more evidence.",
+                    title: "Arrest Dr. Kazmir",
+                    description: "While the evidence isn't overwhelming, there's enough to charge Dr. Kazmir with assault. The case may not hold up in court without more evidence.",
                     outcome: .weakArrest,
                     requirements: "Moderate evidence",
                     consequences: "Weak case, may not result in conviction"
@@ -558,21 +563,21 @@ class Act7ViewModel: ObservableObject {
         case .arrest:
             return GameOutcome(
                 title: "Justice Served",
-                description: "Dr. Chen is arrested and charged with assault and conspiracy. Your thorough investigation provided the evidence needed for a conviction. The organ trafficking ring is exposed, though some members escape.",
+                description: "Dr. Kazmir is arrested and charged with assault and conspiracy. Your thorough investigation provided the evidence needed for a conviction. The organ trafficking ring is exposed, though some members escape.",
                 endingType: .success
             )
             
         case .cooperation:
             return GameOutcome(
                 title: "Network Exposed",
-                description: "Working with Dr. Chen, you successfully expose the entire organ trafficking network. Five conspirators are arrested, including the ring leader. Dr. Chen's cooperation proves invaluable.",
+                description: "Working with Dr. Kazmir, you successfully expose the entire organ trafficking network. Five conspirators are arrested, including the ring leader. Dr. Kazmir's cooperation proves invaluable.",
                 endingType: .success
             )
             
         case .weakArrest:
             return GameOutcome(
                 title: "Pyrrhic Victory",
-                description: "Dr. Chen is arrested, but the case falls apart in court due to insufficient evidence. She's released after six months, and the real perpetrators remain free.",
+                description: "Dr. Kazmir is arrested, but the case falls apart in court due to insufficient evidence. She's released after six months, and the real perpetrators remain free.",
                 endingType: .partialSuccess
             )
             

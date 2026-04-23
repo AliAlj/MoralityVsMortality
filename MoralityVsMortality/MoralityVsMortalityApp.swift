@@ -12,6 +12,9 @@ struct MoralityVsMortalityApp: App {
                 StartScreenView(screen: $currentScreen)
             case .intro:
                 IntroScreenView(screen: $currentScreen)
+            case .characterSelect:
+                CharacterSelectView(screen: $currentScreen)
+                    .environmentObject(gameState)
             case .game:
                 ContentView()
                     .environmentObject(gameState)

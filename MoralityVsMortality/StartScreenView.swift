@@ -154,8 +154,111 @@ struct IntroScreenView: View {
             startTyping()
         } else {
             hasSeenIntro = true
-            screen = .game
+            screen = .characterSelect
         }
+    }
+}
+
+// MARK: - Character Selection Screen
+struct CharacterSelectView: View {
+    @EnvironmentObject var gameState: GameState
+    @Binding var screen: AppScreen
+    @State private var selectedDetective: String? = nil
+    @State private var playerName = ""
+    @State private var showNameField = false
+
+    var body: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+
+            VStack(spacing: 30) {
+                Text("CHOOSE YOUR DETECTIVE")
+                    .font(.custom("Times New Roman", size: 36))
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .tracking(4)
+                    .padding(.top, 40)
+
+                HStack(spacing: 60) {
+                    detectiveOption("detectiveOne")
+                    detectiveOption("detectiveTwo")
+                }
+
+                if showNameField {
+                    VStack(spacing: 16) {
+                        Text("ENTER YOUR NAME")
+                            .font(.custom("Times New Roman", size: 20))
+                            .foregroundColor(.white.opacity(0.8))
+                            .tracking(2)
+
+                        TextField("", text: $playerName)
+                            .textFieldStyle(.plain)
+                            .font(.custom("Times New Roman", size: 24))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .frame(width: 300)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+
+                        if !playerName.trimmingCharacters(in: .whitespaces).isEmpty {
+                            Button {
+                                gameState.playerName = playerName.trimmingCharacters(in: .whitespaces)
+                                gameState.selectedDetective = selectedDetective ?? "detectiveOne"
+                                screen = .game
+                            } label: {
+                                Text("BEGIN")
+                                    .font(.custom("Times New Roman", size: 22))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .tracking(4)
+                                    .padding(.horizontal, 40)
+                                    .padding(.vertical, 12)
+                                    .background(Color.white.opacity(0.15))
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .transition(.opacity)
+                }
+
+                Spacer()
+            }
+        }
+    }
+
+    private func detectiveOption(_ name: String) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                selectedDetective = name
+                showNameField = true
+            }
+        } label: {
+            VStack {
+                Image(name)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 300)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(selectedDetective == name ? Color.white : Color.clear, lineWidth: 3)
+                    )
+                    .shadow(color: selectedDetective == name ? .white.opacity(0.4) : .clear, radius: 10)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -163,5 +266,6 @@ struct IntroScreenView: View {
 enum AppScreen {
     case start
     case intro
+    case characterSelect
     case game
 }

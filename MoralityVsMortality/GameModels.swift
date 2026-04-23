@@ -38,14 +38,17 @@ struct Suspect: Identifiable, Codable {
     let description: String
     let suspicionLevel: Int
     var isUnlocked: Bool
+    let portraitImage: String
 
     init(name: String, description: String,
-         suspicionLevel: Int, isUnlocked: Bool = false) {
+         suspicionLevel: Int, isUnlocked: Bool = false,
+         portraitImage: String = "") {
         self.id = UUID()
         self.name = name
         self.description = description
         self.suspicionLevel = suspicionLevel
         self.isUnlocked = isUnlocked
+        self.portraitImage = portraitImage
     }
 }
 
@@ -131,7 +134,7 @@ enum GameAct: Int, CaseIterable {
         case .investigation:  return "Search both scenes for evidence"
         case .interrogation:  return "Question the suspects"
         case .analysis:       return "Examine evidence with tools"
-        case .confrontation:  return "Face Dr. Voss"
+        case .confrontation:  return "Face Dr. Kazmir"
         }
     }
 
