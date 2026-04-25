@@ -16,22 +16,67 @@ class Act1ViewModel: ObservableObject {
     @Published var jailCellAreas: [InvestigationArea] = []
     @Published var showingEvidenceDetail: Evidence? = nil
     @Published var showingRevealedImage: String? = nil
-    
+    @Published var guardDialogueIndex = 0
+    @Published var showingGuard = true
+    @Published var guardItemsGiven = false
+
     var investigationAreas: [InvestigationArea] {
         switch currentRoom {
         case .hospitalRoom: return hospitalRoomAreas
         case .jailCell: return jailCellAreas
         }
     }
-    
+
     var gameState: GameState
-    
+
+    let guardDialogue: [String] = [
+        "You must be the investigator. I'm Jason Perry — I'll be escorting you through the facility.",
+        "An inmate named Wayne Michaels died last night. Officially, it was a heart attack. You're here to confirm that.",
+        "Here are his personal belongings and his prison intake form. Standard procedure — you'll need these for reference.",
+        "You can search two locations: his jail cell and the hospital room where he was found. Look around carefully. Tap anything that catches your eye.",
+        "I'll be here if you need me. Good luck."
+    ]
+
     init(gameState: GameState) {
         self.gameState = gameState
         setupHospitalRoomAreas()
         setupJailCellAreas()
     }
-    
+
+    func advanceGuardDialogue() {
+        if guardDialogueIndex == 2 && !guardItemsGiven {
+            giveGuardItems()
+            guardItemsGiven = true
+        }
+
+        if guardDialogueIndex < guardDialogue.count - 1 {
+            guardDialogueIndex += 1
+        } else {
+            showingGuard = false
+        }
+    }
+
+    private func giveGuardItems() {
+        let license = Evidence(
+            name: "Wayne's License",
+            description: "Wayne's real license from his belongings bag. Organ Donor status clearly reads NO.",
+            actDiscovered: 1,
+            isRealEvidence: true,
+            evidenceType: .document,
+            metadata: ["organ_donor": "NO", "document_type": "original license"]
+        )
+        let intakeForm = Evidence(
+            name: "Prison Intake Form",
+            description: "Wayne's prison intake form. It includes a screenshot of his license showing Organ Donor status as YES.",
+            actDiscovered: 1,
+            isRealEvidence: true,
+            evidenceType: .document,
+            metadata: ["organ_donor": "YES", "detail": "license screenshot on file"]
+        )
+        gameState.addEvidence(license)
+        gameState.addEvidence(intakeForm)
+    }
+
     private func setupHospitalRoomAreas() {
         hospitalRoomAreas = [
             InvestigationArea(
@@ -76,20 +121,6 @@ class Act1ViewModel: ObservableObject {
                     evidenceType: .physical,
                     metadata: ["time": "2:00 AM", "status": "vitals present", "implication": "alive when found"]
                 )
-            ),
-            InvestigationArea(
-                name: "Surgical Consent Form",
-                description: "A form on the bedside table",
-                position: CGPoint(x: 550, y: 180),
-                size: CGSize(width: 80, height: 60),
-                evidence: Evidence(
-                    name: "Surgical Consent Form",
-                    description: "Wayne's surgical consent form. The Organ Donor field is marked YES. Suspicious given his status as a prison inmate.",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .document,
-                    metadata: ["organ_donor": "YES", "context": "prison inmate — unusual"]
-                )
             )
         ]
     }
@@ -111,20 +142,6 @@ class Act1ViewModel: ObservableObject {
                     metadata: ["author": "Kathy Alvarez", "tone": "romantic, personal"]
                 ),
                 revealedImageName: "loveLetter"
-            ),
-            InvestigationArea(
-                name: "Intake Record",
-                description: "Official prison intake paperwork on the shelf",
-                position: CGPoint(x: 600, y: 80),
-                size: CGSize(width: 100, height: 80),
-                evidence: Evidence(
-                    name: "Intake Record",
-                    description: "Wayne's original intake record from when he entered the prison system. The Organ Donor field clearly reads NO.",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .document,
-                    metadata: ["organ_donor": "NO", "document_type": "original intake record"]
-                )
             )
         ]
     }
@@ -219,11 +236,17 @@ struct Act1SceneInvestigationView: View {
             EvidenceSummaryView()
         }
         .onAppear {
-            // Reinitialize viewModel with actual gameState
             viewModel.gameState = gameState
         }
         .sheet(item: $viewModel.showingEvidenceDetail) { evidence in
             EvidenceDetailSheet(evidence: evidence)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if viewModel.showingGuard {
+                GuardDialogueView(viewModel: viewModel)
+                    .padding()
+                    .transition(.move(edge: .trailing))
+            }
         }
         .overlay {
             if let revealedImage = viewModel.showingRevealedImage {
@@ -370,6 +393,7 @@ struct InvestigationAreaView: View {
         }
         .buttonStyle(.plain)
         .frame(width: area.size.width, height: area.size.height)
+        .contentShape(Rectangle())
         .onHover { hovering in
             isHovered = hovering
         }
@@ -492,6 +516,75 @@ struct EvidenceDetailSheet: View {
         }
         .padding()
         .frame(minWidth: 400, minHeight: 300)
+    }
+}
+
+// MARK: - Prison Guard Dialogue
+struct GuardDialogueView: View {
+    @ObservedObject var viewModel: Act1ViewModel
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 12) {
+            // Dialogue bubble
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Jason Perry")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white.opacity(0.7))
+
+                Text(viewModel.guardDialogue[viewModel.guardDialogueIndex])
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                    .lineSpacing(4)
+
+                // Item notification
+                if viewModel.guardDialogueIndex == 2 && viewModel.guardItemsGiven {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Wayne's License and Prison Intake Form added to evidence.")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    }
+                    .padding(.top, 4)
+                }
+
+                HStack {
+                    Spacer()
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            viewModel.advanceGuardDialogue()
+                        }
+                    } label: {
+                        Text(viewModel.guardDialogueIndex < viewModel.guardDialogue.count - 1 ? "Continue" : "Got it")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: 380)
+            .background(Color.black.opacity(0.85))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+
+            // Guard portrait
+            Image("prisonGuard")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 1))
+        }
     }
 }
 

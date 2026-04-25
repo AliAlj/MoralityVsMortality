@@ -241,9 +241,9 @@ class Act2ViewModel: ObservableObject {
                 cooperationChange: -1
             ),
             InterrogationQuestion(
-                questionText: "His intake record says he was not an organ donor. But his surgical form says he was.",
+                questionText: "His license says he's not an organ donor. But his intake form has a screenshot showing he is.",
                 responseText: "Records get updated. Patients change their minds. It happens.",
-                requiredEvidence: ["Intake Record", "Surgical Consent Form"],
+                requiredEvidence: ["Wayne's License", "Prison Intake Form"],
                 cooperationChange: -2
             )
         ]

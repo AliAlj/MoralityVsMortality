@@ -174,11 +174,11 @@ class GameState: ObservableObject {
     private func getAnalysisResult(evidence: Evidence, tool: AnalysisTool) -> String {
         let combinations: [String: [AnalysisTool: String]] = [
             // Comparison Tool results
-            "Intake Record": [
-                .comparison: "Organ Donor field reads NO. This directly contradicts the Surgical Consent Form which reads YES. The donor status was altered."
+            "Wayne's License": [
+                .comparison: "Organ Donor field reads NO. But the Prison Intake Form has a screenshot of his license showing YES. The screenshot was doctored."
             ],
-            "Surgical Consent Form": [
-                .comparison: "Organ Donor field reads YES. Compare with the Intake Record — the original status was NO. Someone changed it."
+            "Prison Intake Form": [
+                .comparison: "The license screenshot on this form shows Organ Donor as YES. But Wayne's real license says NO. Someone altered the image."
             ],
             // Timeline Tool results
             "Room Access Log": [
@@ -211,12 +211,12 @@ class GameState: ObservableObject {
               let ev2 = getEvidence(by: e2) else { return false }
 
         let correct: [(String, String, EvidenceConnection.ConnectionType)] = [
-            ("Intake Record", "Surgical Consent Form", .method),
+            ("Wayne's License", "Prison Intake Form", .method),
             ("Room Access Log", "Vital Monitor Printout", .timeline),
             ("Syringe", "Sedation Chart", .method),
             ("Love Letter", "Room Access Log", .person),
             ("Vital Monitor Printout", "Syringe", .timeline),
-            ("Sedation Chart", "Surgical Consent Form", .motive)
+            ("Sedation Chart", "Prison Intake Form", .motive)
         ]
 
         return correct.contains { c in

@@ -296,9 +296,15 @@ struct CaseBoardView: View {
         guard selectedEvidence.count == 2,
               let tool = selectedTool else { return }
 
+        // Capture selection before any state changes
+        let selected = selectedEvidence
+        let e1 = selected[0]
+        let e2 = selected[1]
+        selectedEvidence.removeAll()
+
         // Try analyzing each selected evidence with the tool
         var foundResult = false
-        for evidence in selectedEvidence {
+        for evidence in selected {
             if let result = gameState.performAnalysis(evidenceID: evidence.id, tool: tool) {
                 analysisResult = result
                 completedAnalyses.append(
@@ -314,14 +320,11 @@ struct CaseBoardView: View {
         }
 
         // Also create a connection between the two evidence pieces
-        let e1 = selectedEvidence[0]
-        let e2 = selectedEvidence[1]
         let connectionExists = gameState.evidenceConnections.contains { c in
             (c.evidence1ID == e1.id && c.evidence2ID == e2.id) ||
             (c.evidence1ID == e2.id && c.evidence2ID == e1.id)
         }
         if !connectionExists && foundResult {
-            // Map tool to connection type
             let connectionType: EvidenceConnection.ConnectionType
             switch tool {
             case .comparison: connectionType = .method
@@ -331,8 +334,6 @@ struct CaseBoardView: View {
             }
             gameState.createConnection(evidence1ID: e1.id, evidence2ID: e2.id, type: connectionType)
         }
-
-        selectedEvidence.removeAll()
     }
 }
 
@@ -425,5 +426,5 @@ struct OfficeBulletinButton: View {
 #Preview {
     Act3AnalysisView()
         .environmentObject(GameState())
-        .frame(width: 1000, height: 550)
+        .frame(width: 800, height: 550)
 }

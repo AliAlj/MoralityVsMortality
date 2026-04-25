@@ -266,14 +266,14 @@ struct SurgeonConfrontationView: View {
             // Phase 2: Contradiction
             [
                 ConfrontationQuestion(
-                    questionText: "His intake record says he was not an organ donor.",
+                    questionText: "His license says he was not an organ donor.",
                     responseText: "I'm aware."
                 )
             ],
             // Phase 3: Pressing
             [
                 ConfrontationQuestion(
-                    questionText: "Then why does his surgical file say he was?",
+                    questionText: "Then why does his intake form show a doctored license saying he was?",
                     responseText: "Because by the time he reached my table, he was."
                 )
             ],
