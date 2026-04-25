@@ -4,9 +4,9 @@ import Combine
 @MainActor
 class GameState: ObservableObject {
 
-    // MARK: - Player
-    @Published var playerName: String = ""
-    @Published var selectedDetective: String = "detectiveOne"
+    // MARK: - Player (persisted via AppStorage in views, synced here)
+    @Published var playerName: String = UserDefaults.standard.string(forKey: "playerName") ?? ""
+    @Published var selectedDetective: String = UserDefaults.standard.string(forKey: "selectedDetective") ?? "detectiveOne"
 
     // MARK: - Published
     @Published var currentAct: GameAct = .investigation
@@ -139,18 +139,18 @@ class GameState: ObservableObject {
     // MARK: - Private
     private func setupSuspects() {
         suspects = [
-            Suspect(name: "Dr. Victor Kazmir",
-                    description: "Head surgeon. Performed Wayne's surgery. Pronounced him dead.",
+            Suspect(name: "Dr. Viktor Kazimir",
+                    description: "Head surgeon. Declared Wayne dead. Performed the scheduled surgery.",
                     suspicionLevel: 6, isUnlocked: true,
                     portraitImage: "prisonSurgeon"),
-            Suspect(name: "Kathy Williams",
-                    description: "Wayne's nurse. Found him unconscious before surgery.",
-                    suspicionLevel: 5, isUnlocked: false,
+            Suspect(name: "Kathy Alvarez",
+                    description: "Nurse on duty. Found Wayne unresponsive at 2:00 AM.",
+                    suspicionLevel: 5, isUnlocked: true,
                     portraitImage: "prisonNurse"),
-            Suspect(name: "Jason Perry",
-                    description: "Prison security. On duty that night. Evasive about the footage.",
-                    suspicionLevel: 7, isUnlocked: false,
-                    portraitImage: "prisonGuard"),
+            Suspect(name: "Receptionist",
+                    description: "Front desk staff. Manages room access logs.",
+                    suspicionLevel: 2, isUnlocked: false,
+                    portraitImage: "prisonReceptionist"),
             Suspect(name: "Peter Simmons",
                     description: "Morgue worker. Handled Wayne's body after death.",
                     suspicionLevel: 4, isUnlocked: false,
@@ -159,54 +159,47 @@ class GameState: ObservableObject {
     }
 
     private func checkForUnlockedDialogue() {
-        // Unlock Katya when Love Letter is found
-        if hasEvidence(named: "Love Letter"),
-           let i = suspects.firstIndex(where: { $0.name == "Kathy Williams" }) {
+        // Unlock Receptionist when Sedation Chart is found
+        if hasEvidence(named: "Sedation Chart"),
+           let i = suspects.firstIndex(where: { $0.name == "Receptionist" }) {
             suspects[i].isUnlocked = true
         }
-        // Unlock Doyle when Legal Documents found
-        if hasEvidence(named: "Legal Documents"),
+        // Unlock Peter Simmons when Vital Monitor Printout is found
+        if hasEvidence(named: "Vital Monitor Printout"),
            let i = suspects.firstIndex(where: { $0.name == "Peter Simmons" }) {
-            suspects[i].isUnlocked = true
-        }
-        // Unlock Jenkins when any footage/security evidence found
-        if hasEvidence(named: "Hospital ID Badge"),
-           let i = suspects.firstIndex(where: { $0.name == "Jason Perry" }) {
             suspects[i].isUnlocked = true
         }
     }
 
     private func getAnalysisResult(evidence: Evidence, tool: AnalysisTool) -> String {
         let combinations: [String: [AnalysisTool: String]] = [
-            "Bloody Glove": [
-                .blood: "Type O-negative blood — matches victim's records.",
-                .dna: "Unknown secondary DNA profile detected on inner surface.",
-                .uv: "No additional markings visible under UV."
+            // Comparison Tool results
+            "Intake Record": [
+                .comparison: "Organ Donor field reads NO. This directly contradicts the Surgical Consent Form which reads YES. The donor status was altered."
             ],
-            "Hospital ID Badge": [
-                .uv: "Photo layer shows tampering — original photo was replaced.",
-                .fingerprint: "Multiple overlapping fingerprints detected."
+            "Surgical Consent Form": [
+                .comparison: "Organ Donor field reads YES. Compare with the Intake Record — the original status was NO. Someone changed it."
             ],
+            // Timeline Tool results
+            "Room Access Log": [
+                .timeline: "Kathy Alvarez badged in at 2:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time."
+            ],
+            "Vital Monitor Printout": [
+                .timeline: "Heart rate and oxygen levels were present at 2:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
+            ],
+            // Medical Analysis Tool results
             "Syringe": [
-                .dna: "Traces of a paralytic agent confirmed. Consistent with surgical sedation.",
-                .fingerprint: "Partial print on barrel — insufficient for ID alone."
+                .medical: "Traces of elevated sedative compounds detected. Dosage far exceeds standard pre-operative levels. This was not accidental."
             ],
-            "Victim's Prison License": [
-                .uv: "UV reveals erasure marks on the organ donor field — original text was scraped and rewritten.",
-                .microscope: "Ink on the donor field is visibly different from the rest of the document.",
-                .fingerprint: "Fingerprints on the card do not match the victim."
+            "Sedation Chart": [
+                .medical: "Prescribed dosage is significantly higher than normal for a routine procedure. Sedation levels were intentionally increased."
             ],
-            "Original License Photo": [
-                .microscope: "Consistent with standard intake processing — no signs of alteration.",
-                .uv: "No hidden markings — appears authentic."
-            ],
+            // Context Link Tool results
             "Love Letter": [
-                .fingerprint: "Fingerprints match Kathy Williams from staff records.",
-                .uv: "Faint tear stains visible — the letter was emotionally significant."
+                .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 2:00 AM — this was personal, not protocol."
             ],
-            "Legal Documents": [
-                .microscope: "All signatures and stamps appear authentic.",
-                .uv: "Standard government watermarks confirmed."
+            "Room Access Log": [
+                .contextLink: "Cross-referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""
@@ -218,12 +211,12 @@ class GameState: ObservableObject {
               let ev2 = getEvidence(by: e2) else { return false }
 
         let correct: [(String, String, EvidenceConnection.ConnectionType)] = [
-            ("Bloody Glove", "Syringe", .person),
-            ("Hospital ID Badge", "Victim's Prison License", .method),
-            ("Victim's Prison License", "Original License Photo", .method),
-            ("Legal Documents", "Victim's Prison License", .motive),
-            ("Love Letter", "Kathy Williams", .person),
-            ("Victim's Prison License", "Legal Documents", .motive)
+            ("Intake Record", "Surgical Consent Form", .method),
+            ("Room Access Log", "Vital Monitor Printout", .timeline),
+            ("Syringe", "Sedation Chart", .method),
+            ("Love Letter", "Room Access Log", .person),
+            ("Vital Monitor Printout", "Syringe", .timeline),
+            ("Sedation Chart", "Surgical Consent Form", .motive)
         ]
 
         return correct.contains { c in

@@ -36,52 +36,66 @@ class Act1ViewModel: ObservableObject {
         hospitalRoomAreas = [
             InvestigationArea(
                 name: "Syringe",
-                description: "A syringe found under the hospital bed",
+                description: "A syringe found near the hospital bed",
                 position: CGPoint(x: 300, y: 325),
-                size: CGSize(width: 120, height: 80),
+                size: CGSize(width: 60, height: 50),
                 imageName: "syringe",
                 evidence: Evidence(
                     name: "Syringe",
-                    description: "Empty syringe with traces of unknown substance",
+                    description: "A used syringe with multiple injection marks. Suggests excessive sedation beyond what a routine procedure would require.",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .physical,
-                    metadata: ["substance": "unknown residue", "fingerprints": "visible smudges"]
+                    metadata: ["usage": "multiple injections", "concern": "excessive sedation"]
                 )
             ),
             InvestigationArea(
-                name: "Medical Cart",
-                description: "Wheeled cart with medical instruments",
-                position: CGPoint(x: 90, y: 330),
-                size: CGSize(width: 80, height: 100),
+                name: "Sedation Chart",
+                description: "A chart clipped to the bed frame",
+                position: CGPoint(x: 515, y: 320),
+                size: CGSize(width: 80, height: 60),
                 evidence: Evidence(
-                    name: "Hospital ID Badge",
-                    description: "Employee badge found under cart - Dr. Victor Kazmir",
+                    name: "Sedation Chart",
+                    description: "Wayne's sedation dosage log. The prescribed amounts are significantly higher than standard levels for a routine procedure.",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
-                    metadata: ["owner": "Dr. Victor Kazmir", "department": "Surgery"]
+                    metadata: ["dosage": "above normal", "procedure": "routine surgery"]
+                )
+            ),
+            InvestigationArea(
+                name: "Vital Monitor",
+                description: "The bedside vital signs monitor with a printout",
+                position: CGPoint(x: 90, y: 280),
+                size: CGSize(width: 80, height: 80),
+                evidence: Evidence(
+                    name: "Vital Monitor Printout",
+                    description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 2:00 AM — he was alive when found.",
+                    actDiscovered: 1,
+                    isRealEvidence: true,
+                    evidenceType: .physical,
+                    metadata: ["time": "2:00 AM", "status": "vitals present", "implication": "alive when found"]
+                )
+            ),
+            InvestigationArea(
+                name: "Surgical Consent Form",
+                description: "A form on the bedside table",
+                position: CGPoint(x: 550, y: 180),
+                size: CGSize(width: 80, height: 60),
+                evidence: Evidence(
+                    name: "Surgical Consent Form",
+                    description: "Wayne's surgical consent form. The Organ Donor field is marked YES. Suspicious given his status as a prison inmate.",
+                    actDiscovered: 1,
+                    isRealEvidence: true,
+                    evidenceType: .document,
+                    metadata: ["organ_donor": "YES", "context": "prison inmate — unusual"]
                 )
             )
         ]
     }
-    
+
     private func setupJailCellAreas() {
         jailCellAreas = [
-            InvestigationArea(
-                name: "Personal Belongings Box",
-                description: "Cardboard box with the victim's possessions, handed over by the officer",
-                position: CGPoint(x: 600, y: 80),
-                size: CGSize(width: 100, height: 80),
-                evidence: Evidence(
-                    name: "Victim's Prison License",
-                    description: "The victim's official ID from prison records. Shows organ donor status as YES, but something about the donor field looks off.",
-                    actDiscovered: 1,
-                    isRealEvidence: true,
-                    evidenceType: .document,
-                    metadata: ["organ_donor": "yes", "condition": "suspected alteration on donor field"]
-                )
-            ),
             InvestigationArea(
                 name: "Crumbled Paper",
                 description: "A crumbled piece of paper tucked under the bed",
@@ -90,26 +104,26 @@ class Act1ViewModel: ObservableObject {
                 imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
-                    description: "A heartfelt letter hidden under the pillow. 'I'll be waiting for you when you get out. We'll start over together. Love, Jen.'",
+                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together. — K'",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
-                    metadata: ["author": "Kathy Williams", "tone": "romantic"]
+                    metadata: ["author": "Kathy Alvarez", "tone": "romantic, personal"]
                 ),
                 revealedImageName: "loveLetter"
             ),
             InvestigationArea(
-                name: "Under the Mattress",
-                description: "A common hiding spot in prison cells",
-                position: CGPoint(x: 350, y: 380),
-                size: CGSize(width: 100, height: 60),
+                name: "Intake Record",
+                description: "Official prison intake paperwork on the shelf",
+                position: CGPoint(x: 600, y: 80),
+                size: CGSize(width: 100, height: 80),
                 evidence: Evidence(
-                    name: "Commissary Receipts",
-                    description: "Stack of receipts from the prison commissary. Nothing remarkable — snacks and toiletries.",
+                    name: "Intake Record",
+                    description: "Wayne's original intake record from when he entered the prison system. The Organ Donor field clearly reads NO.",
                     actDiscovered: 1,
-                    isRealEvidence: false,
-                    evidenceType: .physical,
-                    metadata: ["items": "snacks, soap, stamps", "relevance": "none"]
+                    isRealEvidence: true,
+                    evidenceType: .document,
+                    metadata: ["organ_donor": "NO", "document_type": "original intake record"]
                 )
             )
         ]
@@ -119,13 +133,12 @@ class Act1ViewModel: ObservableObject {
         // Mark area as searched
         gameState.markAreaAsSearched(area.name)
 
-        // Add evidence if present
+        // Add evidence to inventory (no detail popup — just collect it)
         if let evidence = area.evidence {
             gameState.addEvidence(evidence)
-            if let revealedImage = area.revealedImageName {
-                showingRevealedImage = revealedImage
-            } else {
-                showingEvidenceDetail = evidence
+            // Crumbled paper reveal is deferred to Act 3
+            if area.revealedImageName != nil && area.name != "Crumbled Paper" {
+                showingRevealedImage = area.revealedImageName
             }
         }
         

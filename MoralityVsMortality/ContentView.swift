@@ -134,6 +134,12 @@ struct HeaderView: View {
                 }
                 Divider()
                 Button("Reset") { gameState.resetGame() }
+                // Reset onboarding
+                Button("Reset Onboarding") {
+                    UserDefaults.standard.removeObject(forKey: "playerName")
+                    UserDefaults.standard.removeObject(forKey: "selectedDetective")
+                    UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
+                }
             }
             .menuStyle(.borderlessButton)
             #endif

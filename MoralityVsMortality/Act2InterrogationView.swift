@@ -4,307 +4,448 @@ import Combine
 // MARK: - Act 2: Wrapper View
 struct Act2InterrogationView: View {
     var body: some View {
-        Act3InterrogationView()
+        Act2InterrogationMainView()
     }
 }
 
-// MARK: - Act 3: Interrogation View Model
-@MainActor
-class Act3ViewModel: ObservableObject {
-    @Published var availableQuestions: [DialogueNode] = []
-    @Published var conversationHistory: [ConversationEntry] = []
-    @Published var selectedSuspect: Suspect?
-    @Published var showingQuestionDetail: DialogueNode?
-    
-    var gameState: GameState
-    
-    // Whether the player is stuck (no unlocked questions left, but can't progress)
-    var isStuck: Bool {
-        let unlockableCount = availableQuestions.filter(\.isUnlocked).count
-        return unlockableCount == 0 && !gameState.canProgressToNextAct
-    }
-    
-    // Hints about what evidence is missing and where to find it
-    var hints: [(message: String, targetAct: GameAct)] {
-        var result: [(String, GameAct)] = []
-        
-        let lockedQuestions = availableQuestions.filter { !$0.isUnlocked }
-        for question in lockedQuestions {
-            for evidenceName in question.requiredEvidence {
-                if !gameState.hasEvidence(named: evidenceName) {
-                    switch evidenceName {
-                    case "Hospital ID Badge", "Syringe":
-                        result.append(("Search the hospital room for \"\(evidenceName)\"", .investigation))
-                    default:
-                        result.append(("Find \"\(evidenceName)\" in earlier acts", .investigation))
-                    }
-                }
-            }
+// MARK: - Interrogation Order
+enum InterrogationStage: Int, CaseIterable {
+    case kathy = 0
+    case receptionist = 1
+    case morgueWorker = 2
+    case surgeon = 3
+
+    var suspectName: String {
+        switch self {
+        case .kathy: return "Kathy Alvarez"
+        case .receptionist: return "Receptionist"
+        case .morgueWorker: return "Peter Simmons"
+        case .surgeon: return "Dr. Viktor Kazimir"
         }
-        
-        return result
     }
-    
+
+    var portraitImage: String {
+        switch self {
+        case .kathy: return "prisonNurse"
+        case .receptionist: return "prisonReceptionist"
+        case .morgueWorker: return "prisonMorgueWorker"
+        case .surgeon: return "prisonSurgeon"
+        }
+    }
+
+    var greeting: String {
+        switch self {
+        case .kathy: return "I understand you want to talk about what happened. I'll tell you what I know."
+        case .receptionist: return "How can I help you? I manage the front desk and access logs."
+        case .morgueWorker: return "I handled the body. That's my job. What do you want to know?"
+        case .surgeon: return "I'm a busy man. Ask your questions."
+        }
+    }
+}
+
+// MARK: - Act 2: View Model
+@MainActor
+class Act2ViewModel: ObservableObject {
+    @Published var currentStage: InterrogationStage = .kathy
+    @Published var conversationHistory: [ConversationEntry] = []
+    @Published var availableQuestions: [InterrogationQuestion] = []
+    @Published var askedQuestions: Set<String> = []
+    @Published var stageComplete = false
+    @Published var completedStages: Set<Int> = []
+
+    var gameState: GameState
+
     init(gameState: GameState) {
         self.gameState = gameState
-        setupDialogueNodes()
-        selectedSuspect = gameState.suspects.first { $0.isUnlocked }
-        startConversation()
+        loadStage(.kathy)
     }
-    
-    private func setupDialogueNodes() {
-        availableQuestions = [
-            DialogueNode(
-                questionText: "Where were you at 10:45 PM last night?",
-                responses: [
-                    DialogueResponse(
-                        text: "I was in Surgery Room 3, performing an emergency procedure.",
-                        suspectReaction: "Confident and direct",
-                        revealsEvidence: nil,
-                        changesRelationship: 1
-                    )
-                ],
-                requiredEvidence: [],
-                isUnlocked: true
-            ),
-            
-            DialogueNode(
-                questionText: "Do you recognize this hospital ID badge?",
-                responses: [
-                    DialogueResponse(
-                        text: "That's mine! I must have dropped it. I was wondering where it went.",
-                        suspectReaction: "Surprised but relieved",
-                        revealsEvidence: "Dr. Kazmir's Alibi",
-                        changesRelationship: 2
-                    )
-                ],
-                requiredEvidence: ["Hospital ID Badge"],
-                isUnlocked: false
-            ),
-            
-            DialogueNode(
-                questionText: "What can you tell me about the victim's organ transplant status?",
-                responses: [
-                    DialogueResponse(
-                        text: "He was on the waiting list, but not high priority. Why do you ask?",
-                        suspectReaction: "Becoming defensive",
-                        revealsEvidence: "Transplant List Access",
-                        changesRelationship: -1
-                    )
-                ],
-                requiredEvidence: [],
-                isUnlocked: true
-            ),
-            
-            DialogueNode(
-                questionText: "This syringe was found in the room. Any idea what it contained?",
-                responses: [
-                    DialogueResponse(
-                        text: "It looks like it could be a paralytic agent. That's very concerning.",
-                        suspectReaction: "Visibly shaken",
-                        revealsEvidence: "Paralytic Knowledge",
-                        changesRelationship: -2
-                    )
-                ],
-                requiredEvidence: ["Syringe"],
-                isUnlocked: false
-            ),
-            
-        ]
-        
-        updateUnlockedQuestions()
-    }
-    
-    private func updateUnlockedQuestions() {
-        for i in availableQuestions.indices {
-            let question = availableQuestions[i]
-            let hasRequiredEvidence = question.requiredEvidence.allSatisfy { evidenceName in
-                gameState.hasEvidence(named: evidenceName)
-            }
-            
-            if hasRequiredEvidence && !question.isUnlocked {
-                availableQuestions[i].isUnlocked = true
-                gameState.unlockDialogueNode(availableQuestions[i])
-            }
-        }
-    }
-    
-    private func startConversation() {
-        if let suspect = selectedSuspect {
-            conversationHistory.append(
-                ConversationEntry(
-                    speaker: .suspect,
-                    text: "I understand you want to speak with me about what happened last night. I'm willing to cooperate.",
-                    timestamp: Date()
-                )
-            )
-        }
-    }
-    
-    func askQuestion(_ question: DialogueNode) {
-        // Add question to conversation
+
+    func loadStage(_ stage: InterrogationStage) {
+        currentStage = stage
+        conversationHistory.removeAll()
+        askedQuestions.removeAll()
+        stageComplete = false
+        loadQuestions(for: stage)
+
         conversationHistory.append(
-            ConversationEntry(
-                speaker: .investigator,
-                text: question.questionText,
-                timestamp: Date()
-            )
+            ConversationEntry(speaker: .suspect, text: stage.greeting)
         )
-        
-        // Get response (in a real game, this might involve choice selection)
-        if let response = question.responses.first {
-            // Add response to conversation
-            conversationHistory.append(
-                ConversationEntry(
-                    speaker: .suspect,
-                    text: response.text,
-                    timestamp: Date()
-                )
-            )
-            
-            // Update game state
-            gameState.updateSuspectCooperation(by: response.changesRelationship)
-            
-            // Add revealed evidence
-            if let evidenceName = response.revealsEvidence {
-                let evidence = Evidence(
-                    name: evidenceName,
-                    description: "Information revealed during interrogation",
-                    actDiscovered: 3,
-                    isRealEvidence: true,
-                    evidenceType: .document,
-                    metadata: ["source": "interrogation", "suspect": selectedSuspect?.name ?? "Unknown"]
-                )
-                gameState.addEvidence(evidence)
-            }
+    }
+
+    func advanceToNextStage() {
+        completedStages.insert(currentStage.rawValue)
+        if let next = InterrogationStage(rawValue: currentStage.rawValue + 1) {
+            loadStage(next)
         }
-        
-        // Remove used question
-        availableQuestions.removeAll { $0.id == question.id }
-        updateUnlockedQuestions()
+    }
+
+    private func loadQuestions(for stage: InterrogationStage) {
+        switch stage {
+        case .kathy: availableQuestions = kathyQuestions()
+        case .receptionist: availableQuestions = receptionistQuestions()
+        case .morgueWorker: availableQuestions = morgueWorkerQuestions()
+        case .surgeon: availableQuestions = surgeonQuestions()
+        }
+    }
+
+    func askQuestion(_ question: InterrogationQuestion) {
+        guard !askedQuestions.contains(question.id) else { return }
+        askedQuestions.insert(question.id)
+
+        conversationHistory.append(
+            ConversationEntry(speaker: .investigator, text: question.questionText)
+        )
+        conversationHistory.append(
+            ConversationEntry(speaker: .suspect, text: question.responseText)
+        )
+
+        if let evidenceName = question.unlocksEvidence {
+            let evidence = Evidence(
+                name: evidenceName,
+                description: question.evidenceDescription ?? "Information from interrogation.",
+                actDiscovered: 2,
+                isRealEvidence: true,
+                evidenceType: .document,
+                metadata: ["source": "interrogation", "suspect": currentStage.suspectName]
+            )
+            gameState.addEvidence(evidence)
+        }
+
+        let node = DialogueNode(
+            questionText: question.questionText,
+            responses: [DialogueResponse(text: question.responseText, suspectReaction: "")],
+            requiredEvidence: [],
+            isUnlocked: true
+        )
+        gameState.unlockDialogueNode(node)
+        gameState.updateSuspectCooperation(by: question.cooperationChange)
+
+        // Check if all questions for this stage are done
+        if unaskedQuestions.isEmpty {
+            stageComplete = true
+        }
+    }
+
+    var unaskedQuestions: [InterrogationQuestion] {
+        availableQuestions.filter { q in
+            !askedQuestions.contains(q.id) && meetsRequirements(q)
+        }
+    }
+
+    private func meetsRequirements(_ question: InterrogationQuestion) -> Bool {
+        question.requiredEvidence.allSatisfy { gameState.hasEvidence(named: $0) }
+    }
+
+    var isLastStage: Bool {
+        currentStage == .surgeon
+    }
+
+    // MARK: - Kathy Alvarez Questions
+    private func kathyQuestions() -> [InterrogationQuestion] {
+        [
+            InterrogationQuestion(
+                questionText: "Why were you at the hospital at 2 AM?",
+                responseText: "I came back to grab something I forgot... I checked on my patient while I was there.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "Why him specifically?",
+                responseText: "He had surgery in the morning. I didn't want anything to go wrong.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "What did you find when you checked on him?",
+                responseText: "He wasn't responding. I tried to wake him... nothing.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "What did you do next?",
+                responseText: "I called Dr. Kazimir.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "Why not call emergency response?",
+                responseText: "...I thought it was sedation-related. I didn't want to overreact.",
+                cooperationChange: -1
+            ),
+            InterrogationQuestion(
+                questionText: "And when the doctor arrived?",
+                responseText: "He examined him... and said he was gone.",
+                cooperationChange: 0
+            )
+        ]
+    }
+
+    // MARK: - Receptionist Questions
+    private func receptionistQuestions() -> [InterrogationQuestion] {
+        [
+            InterrogationQuestion(
+                questionText: "Do you track who enters patient rooms?",
+                responseText: "Yes. Staff use badges. It's all logged in the system.",
+                cooperationChange: 1
+            ),
+            InterrogationQuestion(
+                questionText: "Can I access those logs?",
+                responseText: "I'm not supposed to... but if this is an official investigation, I can pull them up.",
+                unlocksEvidence: "Room Access Log",
+                evidenceDescription: "Digital access log showing Kathy Alvarez entered at 2:00 AM. Dr. Kazimir entered shortly after. Confirms the timeline.",
+                cooperationChange: 2
+            )
+        ]
+    }
+
+    // MARK: - Morgue Worker Questions
+    private func morgueWorkerQuestions() -> [InterrogationQuestion] {
+        [
+            InterrogationQuestion(
+                questionText: "What was the official cause of death?",
+                responseText: "That's what the report says. Heart attack.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "Do you agree with that assessment?",
+                responseText: "...It wasn't typical.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "Why not?",
+                responseText: "No trauma. No stress signs. Nothing that usually points to cardiac arrest.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "Anything unusual about the body?",
+                responseText: "...Injection marks. More than expected for a routine pre-op.",
+                cooperationChange: -1
+            )
+        ]
+    }
+
+    // MARK: - Surgeon Initial Questions
+    private func surgeonQuestions() -> [InterrogationQuestion] {
+        [
+            InterrogationQuestion(
+                questionText: "You declared Wayne Michaels dead. Walk me through it.",
+                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 2:47 AM.",
+                cooperationChange: 0
+            ),
+            InterrogationQuestion(
+                questionText: "The sedation levels seem unusually high for a routine procedure.",
+                responseText: "I approved the sedation protocol. Every patient is different.",
+                requiredEvidence: ["Sedation Chart"],
+                cooperationChange: -1
+            ),
+            InterrogationQuestion(
+                questionText: "His vital monitor shows he still had a heartbeat at 2:00 AM.",
+                responseText: "You're misreading medical data. Residual electrical activity isn't the same as life.",
+                requiredEvidence: ["Vital Monitor Printout"],
+                cooperationChange: -1
+            ),
+            InterrogationQuestion(
+                questionText: "His intake record says he was not an organ donor. But his surgical form says he was.",
+                responseText: "Records get updated. Patients change their minds. It happens.",
+                requiredEvidence: ["Intake Record", "Surgical Consent Form"],
+                cooperationChange: -2
+            )
+        ]
     }
 }
 
+// MARK: - Interrogation Question Model
+struct InterrogationQuestion: Identifiable {
+    let id: String
+    let questionText: String
+    let responseText: String
+    var requiredEvidence: [String]
+    var unlocksEvidence: String?
+    var evidenceDescription: String?
+    var cooperationChange: Int
 
-// MARK: - Act 3: Interrogation View
-struct Act3InterrogationView: View {
-    @EnvironmentObject private var gameState: GameState
-    @StateObject private var viewModel: Act3ViewModel
-    
-    init() {
-        self._viewModel = StateObject(wrappedValue: Act3ViewModel(gameState: GameState()))
+    init(questionText: String, responseText: String,
+         requiredEvidence: [String] = [], unlocksEvidence: String? = nil,
+         evidenceDescription: String? = nil, cooperationChange: Int = 0) {
+        self.id = questionText
+        self.questionText = questionText
+        self.responseText = responseText
+        self.requiredEvidence = requiredEvidence
+        self.unlocksEvidence = unlocksEvidence
+        self.evidenceDescription = evidenceDescription
+        self.cooperationChange = cooperationChange
     }
-    
+}
+
+// MARK: - Act 2: Main View
+struct Act2InterrogationMainView: View {
+    @EnvironmentObject private var gameState: GameState
+    @StateObject private var viewModel: Act2ViewModel
+
+    init() {
+        self._viewModel = StateObject(wrappedValue: Act2ViewModel(gameState: GameState()))
+    }
+
     var body: some View {
-        HStack(spacing: 20) {
-            // Conversation area
-            VStack {
-                // Header
-                HStack {
-                    Text("🗣️ **Interrogation Room**")
+        VStack(spacing: 0) {
+            // Progress bar showing interrogation order
+            HStack(spacing: 0) {
+                ForEach(InterrogationStage.allCases, id: \.rawValue) { stage in
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(stageColor(stage))
+                            .frame(width: 10, height: 10)
+                        Text(stage.suspectName)
+                            .font(.caption2)
+                            .foregroundColor(stage == viewModel.currentStage ? .primary : .secondary)
+                            .fontWeight(stage == viewModel.currentStage ? .bold : .regular)
+                    }
+                    .padding(.horizontal, 8)
+
+                    if stage.rawValue < InterrogationStage.allCases.count - 1 {
+                        Rectangle()
+                            .fill(viewModel.completedStages.contains(stage.rawValue) ? Color.green : Color.gray.opacity(0.3))
+                            .frame(height: 2)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            .background(Color.gray.opacity(0.05))
+
+            Divider()
+
+            // Header with current suspect
+            HStack {
+                Image(viewModel.currentStage.portraitImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
+
+                VStack(alignment: .leading) {
+                    Text(viewModel.currentStage.suspectName)
                         .font(.headline)
-                    
+                    Text("Interrogation \(viewModel.currentStage.rawValue + 1) of 4")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                CooperationMeterView()
+                    .frame(width: 180)
+            }
+            .padding()
+            .background(Color.gray.opacity(0.05))
+
+            // Conversation
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 12) {
+                        ForEach(viewModel.conversationHistory) { entry in
+                            ConversationBubbleView(
+                                entry: entry,
+                                playerImage: gameState.selectedDetective,
+                                suspectImage: viewModel.currentStage.portraitImage,
+                                suspectName: viewModel.currentStage.suspectName
+                            )
+                            .id(entry.id)
+                        }
+                    }
+                    .padding()
+                }
+                .onChange(of: viewModel.conversationHistory.count) { _ in
+                    if let last = viewModel.conversationHistory.last {
+                        withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                    }
+                }
+            }
+
+            Divider()
+
+            // Questions or next button
+            if viewModel.stageComplete {
+                HStack {
                     Spacer()
-                    
-                    if let suspect = viewModel.selectedSuspect {
-                        Text("Interviewing: \(suspect.name)")
+                    if viewModel.isLastStage {
+                        Text("Interrogations complete.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                    }
-                }
-                
-                // Suspect cooperation meter
-                CooperationMeterView()
-                
-                // Conversation history
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 12) {
-                            ForEach(viewModel.conversationHistory) { entry in
-                                ConversationBubbleView(
-                                    entry: entry,
-                                    playerImage: gameState.selectedDetective,
-                                    suspectImage: viewModel.selectedSuspect?.portraitImage ?? "prisonSurgeon",
-                                    suspectName: viewModel.selectedSuspect?.name ?? "Suspect"
-                                )
-                                .id(entry.id)
+                    } else {
+                        Button {
+                            viewModel.advanceToNextStage()
+                        } label: {
+                            HStack {
+                                Text("Next: \(InterrogationStage(rawValue: viewModel.currentStage.rawValue + 1)?.suspectName ?? "")")
+                                Image(systemName: "arrow.right")
                             }
                         }
-                        .padding()
+                        .buttonStyle(.borderedProminent)
                     }
-                    .background(Color.gray.opacity(0.05))
-                    .cornerRadius(8)
-                    .onChange(of: viewModel.conversationHistory.count) { _ in
-                        if let lastEntry = viewModel.conversationHistory.last {
-                            withAnimation {
-                                proxy.scrollTo(lastEntry.id, anchor: .bottom)
+                    Spacer()
+                }
+                .padding()
+                .background(Color.gray.opacity(0.05))
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(viewModel.unaskedQuestions) { question in
+                            Button {
+                                viewModel.askQuestion(question)
+                            } label: {
+                                Text(question.questionText)
+                                    .font(.caption)
+                                    .foregroundColor(.primary)
+                                    .padding(10)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                    )
                             }
+                            .buttonStyle(.plain)
                         }
                     }
+                    .padding()
                 }
+                .frame(height: 60)
+                .background(Color.gray.opacity(0.05))
             }
-            
-            // Questions sidebar
-            VStack(alignment: .leading) {
-                Text("Available Questions")
-                    .font(.headline)
-                    .padding(.bottom)
-                
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(viewModel.availableQuestions) { question in
-                            QuestionCardView(
-                                question: question,
-                                onAsk: {
-                                    viewModel.askQuestion(question)
-                                }
-                            )
-                        }
-                        
-                        if viewModel.isStuck {
-                            StuckHintView(hints: viewModel.hints, onGoBack: { act in
-                                gameState.jumpToAct(act)
-                            })
-                        } else if viewModel.availableQuestions.isEmpty {
-                            Text("No more questions available")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding()
-                        }
-                    }
-                }
-            }
-            .frame(width: 300)
         }
-        .padding()
         .onAppear {
             viewModel.gameState = gameState
         }
     }
+
+    private func stageColor(_ stage: InterrogationStage) -> Color {
+        if viewModel.completedStages.contains(stage.rawValue) {
+            return .green
+        } else if stage == viewModel.currentStage {
+            return .blue
+        } else {
+            return .gray.opacity(0.3)
+        }
+    }
 }
 
+// MARK: - Cooperation Meter
 struct CooperationMeterView: View {
     @EnvironmentObject private var gameState: GameState
-    
+
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text("Suspect Cooperation:")
-                    .font(.caption)
+                Text("Cooperation:")
+                    .font(.caption2)
                 Spacer()
                 Text("\(gameState.suspectCooperationLevel)/10")
-                    .font(.caption)
+                    .font(.caption2)
                     .fontWeight(.bold)
             }
-            
+
             ProgressView(value: Double(gameState.suspectCooperationLevel), total: 10.0)
                 .progressViewStyle(LinearProgressViewStyle(tint: cooperationColor))
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(8)
     }
-    
+
     private var cooperationColor: Color {
         switch gameState.suspectCooperationLevel {
         case 1...3: return .red
@@ -315,6 +456,7 @@ struct CooperationMeterView: View {
     }
 }
 
+// MARK: - Conversation Bubble
 struct ConversationBubbleView: View {
     let entry: ConversationEntry
     let playerImage: String
@@ -361,103 +503,7 @@ struct ConversationBubbleView: View {
     }
 }
 
-struct QuestionCardView: View {
-    let question: DialogueNode
-    let onAsk: () -> Void
-    
-    var body: some View {
-        Button(action: onAsk) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(question.questionText)
-                    .font(.body)
-                    .multilineTextAlignment(.leading)
-                
-                if !question.requiredEvidence.isEmpty {
-                    HStack {
-                        Image(systemName: "doc.text")
-                            .foregroundColor(.blue)
-                        Text("Requires: \(question.requiredEvidence.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(question.isUnlocked ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(question.isUnlocked ? Color.blue : Color.gray, lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-        .disabled(!question.isUnlocked)
-    }
-}
-
-// MARK: - Stuck Hint View
-struct StuckHintView: View {
-    let hints: [(message: String, targetAct: GameAct)]
-    let onGoBack: (GameAct) -> Void
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "lightbulb.fill")
-                    .foregroundColor(.yellow)
-                Text("Need More Evidence")
-                    .font(.headline)
-            }
-            
-            Text("You've run out of questions to ask. Collect more evidence to unlock new lines of questioning.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Divider()
-            
-            ForEach(Array(hints.enumerated()), id: \.offset) { _, hint in
-                Button(action: { onGoBack(hint.targetAct) }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrow.uturn.backward.circle.fill")
-                            .foregroundColor(.blue)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(hint.message)
-                                .font(.caption)
-                                .multilineTextAlignment(.leading)
-                            Text("Return to Act \(hint.targetAct.rawValue): \(hint.targetAct.title)")
-                                .font(.caption2)
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .padding(8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding()
-        .background(Color.orange.opacity(0.1))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.orange.opacity(0.5), lineWidth: 1)
-        )
-    }
-}
-
-// TODO: Expand this view with:
-// - Multiple suspects to choose from
-// - Dynamic response trees based on evidence
-// - Emotional state tracking
-// - Voice stress analysis mini-game
-// - Note-taking functionality
-// - Response timing mechanics
-
 #Preview {
-    Act3InterrogationView()
+    Act2InterrogationMainView()
         .environmentObject(GameState())
 }

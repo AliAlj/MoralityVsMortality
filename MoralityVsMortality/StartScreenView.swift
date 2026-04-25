@@ -3,7 +3,12 @@ import SwiftUI
 // MARK: - Start Screen
 struct StartScreenView: View {
     @AppStorage("hasSeenIntro") private var hasSeenIntro = false
+    @AppStorage("playerName") private var savedName = ""
     @Binding var screen: AppScreen
+
+    private var hasCompletedSetup: Bool {
+        hasSeenIntro && !savedName.isEmpty
+    }
 
     var body: some View {
         ZStack {
@@ -16,9 +21,13 @@ struct StartScreenView: View {
                 Spacer()
 
                 Button {
-                    screen = .intro
+                    if hasCompletedSetup {
+                        screen = .game
+                    } else {
+                        screen = .intro
+                    }
                 } label: {
-                    Image(hasSeenIntro ? "continueButton" : "startButton")
+                    Image(hasCompletedSetup ? "continueButton" : "startButton")
                         .resizable()
                         .scaledToFit()
                         .frame(height: 100)
@@ -43,11 +52,13 @@ struct IntroScreenView: View {
     @State private var typingTask: Task<Void, Never>?
 
     private let pages: [String] = [
-        "As a private investigator, your job is to investigate Wayne's death. Wayne is a patient in the prison hospital, he was convicted 5 years ago for attempted murder. He was scheduled for a very simple surgery with Dr. Viktor Kazimir, the head surgeon in the hospital.\n\nBut just hours before his surgery Wayne was found unconscious by his nurse Kathy. He was pronounced dead by the doctor, the cause being a heart attack.\n\nYou were hired as a private investigator by Wayne's best friend to find out Wayne's cause of death.",
+        "2:00 AM — Tuesday, October 5th\n\nA sharp gasp cuts through the hospital corridor.\n\nWayne Michaels is found unresponsive.\n\nMinutes later, he is pronounced dead.",
 
-        "2:00 AM Tuesday October 5th.....\n\nWayne is found dead.",
+        "Wayne was a prison inmate serving a life sentence for attempted murder.\n\nOne week ago, he was transferred to the prison hospital following a violent altercation.\n\nHis condition was stable.\nHe was scheduled for a routine surgical procedure in the morning.",
 
-        "Wayne is a patient in the prison hospital, he was convicted 5 years ago for attempted murder. He got into a violent gang fight and was admitted into the prison hospital 1 week ago. He was scheduled for a very simple surgery with Dr. Viktor Kazimir, the head surgeon in the hospital. But just hours before his surgery Wayne was found unconscious by his nurse Kathy.\n\nHe was later pronounced dead by Dr. Kazimir, the cause being a heart attack."
+        "The attending surgeon: Dr. Viktor Kazimir\nThe nurse on duty: Kathy Alvarez\n\nAccording to the official report,\nWayne suffered a sudden heart attack.\n\nCase closed.",
+
+        "But something doesn't add up.\n\nYou've been hired  to find out what really happened."
     ]
 
     var body: some View {
@@ -209,8 +220,12 @@ struct CharacterSelectView: View {
 
                         if !playerName.trimmingCharacters(in: .whitespaces).isEmpty {
                             Button {
-                                gameState.playerName = playerName.trimmingCharacters(in: .whitespaces)
-                                gameState.selectedDetective = selectedDetective ?? "detectiveOne"
+                                let name = playerName.trimmingCharacters(in: .whitespaces)
+                                let detective = selectedDetective ?? "detectiveOne"
+                                gameState.playerName = name
+                                gameState.selectedDetective = detective
+                                UserDefaults.standard.set(name, forKey: "playerName")
+                                UserDefaults.standard.set(detective, forKey: "selectedDetective")
                                 screen = .game
                             } label: {
                                 Text("BEGIN")

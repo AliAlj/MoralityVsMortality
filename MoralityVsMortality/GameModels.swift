@@ -134,7 +134,7 @@ enum GameAct: Int, CaseIterable {
         case .investigation:  return "Search both scenes for evidence"
         case .interrogation:  return "Question the suspects"
         case .analysis:       return "Examine evidence with tools"
-        case .confrontation:  return "Face Dr. Kazmir"
+        case .confrontation:  return "Face the truth"
         }
     }
 
@@ -203,29 +203,26 @@ enum InvestigationRoom: String, CaseIterable {
 
 // MARK: - Analysis Tool
 enum AnalysisTool: String, CaseIterable {
-    case uv          = "UV Light"
-    case dna         = "DNA Test"
-    case blood       = "Blood Analysis"
-    case fingerprint = "Fingerprint"
-    case microscope  = "Microscope"
+    case comparison  = "Comparison"
+    case timeline    = "Timeline"
+    case medical     = "Medical Analysis"
+    case contextLink = "Context Link"
 
     var description: String {
         switch self {
-        case .uv:          return "Reveals hidden markings and substances"
-        case .dna:         return "Identifies genetic material"
-        case .blood:       return "Determines blood type and origin"
-        case .fingerprint: return "Analyzes fingerprint patterns"
-        case .microscope:  return "Examines microscopic details"
+        case .comparison:  return "Compare two documents for discrepancies"
+        case .timeline:    return "Reconstruct the sequence of events"
+        case .medical:     return "Analyze medical data and substances"
+        case .contextLink: return "Link evidence to reveal hidden connections"
         }
     }
 
     var icon: String {
         switch self {
-        case .uv:          return "lightbulb.fill"
-        case .dna:         return "staroflife.fill"
-        case .blood:       return "drop.fill"
-        case .fingerprint: return "hand.point.up.braille.fill"
-        case .microscope:  return "eye.circle.fill"
+        case .comparison:  return "doc.on.doc"
+        case .timeline:    return "clock.arrow.circlepath"
+        case .medical:     return "cross.vial"
+        case .contextLink: return "link"
         }
     }
 }
