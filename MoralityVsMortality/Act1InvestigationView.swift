@@ -14,9 +14,6 @@ class Act1ViewModel: ObservableObject {
     @Published var currentRoom: InvestigationRoom = .jailCell
     @Published var hospitalRoomAreas: [InvestigationArea] = []
     @Published var jailCellAreas: [InvestigationArea] = []
-    @Published var showingEvidenceDetail: Evidence? = nil
-    @Published var showingRevealedImage: String? = nil
-
     // Guard dialogue
     @Published var guardDialogueIndex = 0
     @Published var showingGuard = true
@@ -164,8 +161,7 @@ class Act1ViewModel: ObservableObject {
                     isRealEvidence: true,
                     evidenceType: .document,
                     metadata: ["author": "Kathy Alvarez", "tone": "romantic, personal"]
-                ),
-                revealedImageName: "loveLetter"
+                )
             )
         ]
     }
@@ -173,26 +169,15 @@ class Act1ViewModel: ObservableObject {
     func searchArea(_ area: InvestigationArea) {
         guard !gameState.isAreaSearched(area.name) else { return }
 
-        // Mark area as searched
-        gameState.markAreaAsSearched(area.name)
-
-        // Add evidence to inventory
+        // Show pop-up first (before triggering gameState changes)
         if let evidence = area.evidence {
-            gameState.addEvidence(evidence)
-            // Show pop-up for every item
             showingItemPopup = (imageName: area.imageName, evidenceName: evidence.name)
         }
-        
-        // Update the area in the correct room's array
-        switch currentRoom {
-        case .hospitalRoom:
-            if let index = hospitalRoomAreas.firstIndex(where: { $0.id == area.id }) {
-                hospitalRoomAreas[index].hasBeenSearched = true
-            }
-        case .jailCell:
-            if let index = jailCellAreas.firstIndex(where: { $0.id == area.id }) {
-                jailCellAreas[index].hasBeenSearched = true
-            }
+
+        // Batch gameState changes — these trigger view re-renders
+        gameState.markAreaAsSearched(area.name)
+        if let evidence = area.evidence {
+            gameState.addEvidence(evidence)
         }
     }
     
@@ -262,9 +247,6 @@ struct Act1SceneInvestigationView: View {
         }
         .onAppear {
             viewModel.setGameState(gameState)
-        }
-        .sheet(item: $viewModel.showingEvidenceDetail) { evidence in
-            EvidenceDetailSheet(evidence: evidence)
         }
         // Guard dialogue — bottom right, doesn't block room
         .overlay(alignment: .bottomTrailing) {
@@ -423,12 +405,6 @@ struct RoomBackgroundView: View {
         }
     }
 
-    private var accentColor: Color {
-        switch room {
-        case .hospitalRoom: return .blue
-        case .jailCell: return .orange
-        }
-    }
 }
 
 // MARK: - Investigation Area View
@@ -549,79 +525,6 @@ struct EvidenceSummaryView: View {
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(8)
-    }
-}
-
-// MARK: - Evidence Detail Sheet
-struct EvidenceDetailSheet: View {
-    let evidence: Evidence
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(evidence.name)
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                Button("✕") {
-                    dismiss()
-                }
-                .font(.title2)
-                .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text(evidence.evidenceType.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(evidence.isRealEvidence ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                    .cornerRadius(4)
-                
-                Spacer()
-            }
-            
-            Text(evidence.description)
-                .font(.body)
-            
-            if !evidence.metadata.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Additional Details:")
-                        .font(.headline)
-                    
-                    ForEach(Array(evidence.metadata.keys.sorted()), id: \.self) { key in
-                        if let value = evidence.metadata[key] {
-                            HStack {
-                                Text("\(key.capitalized):")
-                                    .fontWeight(.medium)
-                                Text(value)
-                                Spacer()
-                            }
-                        }
-                    }
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
-            }
-            
-            Spacer()
-            
-            // Dismiss button
-            HStack {
-                Spacer()
-                Button("Got It") {
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                Spacer()
-            }
-        }
-        .padding()
-        .frame(minWidth: 400, minHeight: 300)
     }
 }
 

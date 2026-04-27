@@ -120,9 +120,7 @@ class Act2ViewModel: ObservableObject {
 
         let node = DialogueNode(
             questionText: question.questionText,
-            responses: [DialogueResponse(text: question.responseText, suspectReaction: "")],
-            requiredEvidence: [],
-            isUnlocked: true
+            responses: [DialogueResponse(text: question.responseText, suspectReaction: "")]
         )
         gameState.unlockDialogueNode(node)
         gameState.updateSuspectCooperation(by: question.cooperationChange)
@@ -426,36 +424,6 @@ struct Act2InterrogationMainView: View {
             return .blue
         } else {
             return .gray.opacity(0.3)
-        }
-    }
-}
-
-// MARK: - Cooperation Meter
-struct CooperationMeterView: View {
-    @EnvironmentObject private var gameState: GameState
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Cooperation:")
-                    .font(.caption2)
-                Spacer()
-                Text("\(gameState.suspectCooperationLevel)/10")
-                    .font(.caption2)
-                    .fontWeight(.bold)
-            }
-
-            ProgressView(value: Double(gameState.suspectCooperationLevel), total: 10.0)
-                .progressViewStyle(LinearProgressViewStyle(tint: cooperationColor))
-        }
-    }
-
-    private var cooperationColor: Color {
-        switch gameState.suspectCooperationLevel {
-        case 1...3: return .red
-        case 4...6: return .orange
-        case 7...8: return .yellow
-        default: return .green
         }
     }
 }

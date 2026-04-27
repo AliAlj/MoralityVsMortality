@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 // MARK: - Act 4: Wrapper View
 struct Act4ConfrontationView: View {
@@ -36,7 +35,6 @@ struct KathyFinalView: View {
 
     @State private var dialogueIndex = 0
     @State private var conversationHistory: [ConversationEntry] = []
-    @State private var showContinue = false
 
     private let dialogue: [(ConversationEntry.Speaker, String)] = [
         (.investigator, "You knew him. Why didn't you say that?"),

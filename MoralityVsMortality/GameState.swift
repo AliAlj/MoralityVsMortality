@@ -11,13 +11,10 @@ class GameState: ObservableObject {
     // MARK: - Published
     @Published var currentAct: GameAct = .interrogation
     @Published var collectedEvidence: [Evidence] = []
-    @Published var suspects: [Suspect] = []
     @Published var unlockedDialogue: [DialogueNode] = []
     @Published var evidenceConnections: [EvidenceConnection] = []
     @Published var gameCompleted: Bool = false
     @Published var caseScore: Int = 0
-    @Published var reportChoices: [String: Bool] = [:]  // active omission mechanic
-
     // Act-specific
     @Published var searchedAreas: Set<String> = []
     @Published var suspectCooperationLevel: Int = 5
@@ -32,22 +29,18 @@ class GameState: ObservableObject {
         switch currentAct {
         case .interrogation:  return unlockedDialogue.count >= 2
         case .investigation:  return realEvidenceCount >= 6
-        case .analysis:       return analysisResults.count >= 2 && correctConnectionsCount >= 2
+        case .analysis:       return correctConnectionsCount >= 2
         case .confrontation:  return false  // ends game
         }
     }
 
     // MARK: - Init
-    init() {
-        setupSuspects()
-    }
+    init() { }
 
     // MARK: - Evidence
     func addEvidence(_ evidence: Evidence) {
         guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
         collectedEvidence.append(evidence)
-        checkForUnlockedDialogue()
-        calculateScore()
     }
 
     func hasEvidence(named name: String) -> Bool {
@@ -93,20 +86,6 @@ class GameState: ObservableObject {
         calculateScore()
     }
 
-    func removeConnection(_ connection: EvidenceConnection) {
-        evidenceConnections.removeAll { $0.id == connection.id }
-        calculateScore()
-    }
-
-    // MARK: - Report (Act 4) — active omission
-    func setReportInclusion(evidenceName: String, included: Bool) {
-        reportChoices[evidenceName] = included
-    }
-
-    func isIncludedInReport(_ evidenceName: String) -> Bool {
-        reportChoices[evidenceName] ?? true
-    }
-
     // MARK: - Progression
     func progressToNextAct() {
         guard canProgressToNextAct else { return }
@@ -129,48 +108,12 @@ class GameState: ObservableObject {
         unlockedDialogue.removeAll()
         evidenceConnections.removeAll()
         analysisResults.removeAll()
-        reportChoices.removeAll()
         suspectCooperationLevel = 5
         gameCompleted = false
         caseScore = 0
-        setupSuspects()
     }
 
     // MARK: - Private
-    private func setupSuspects() {
-        suspects = [
-            Suspect(name: "Dr. Viktor Kazimir",
-                    description: "Head surgeon. Declared Wayne dead. Performed the scheduled surgery.",
-                    suspicionLevel: 6, isUnlocked: true,
-                    portraitImage: "prisonSurgeon"),
-            Suspect(name: "Kathy Alvarez",
-                    description: "Nurse on duty. Found Wayne unresponsive at 2:00 AM.",
-                    suspicionLevel: 5, isUnlocked: true,
-                    portraitImage: "prisonNurse"),
-            Suspect(name: "Receptionist",
-                    description: "Front desk staff. Manages room access logs.",
-                    suspicionLevel: 2, isUnlocked: false,
-                    portraitImage: "prisonReceptionist"),
-            Suspect(name: "Peter Simmons",
-                    description: "Morgue worker. Handled Wayne's body after death.",
-                    suspicionLevel: 4, isUnlocked: false,
-                    portraitImage: "prisonMorgueWorker")
-        ]
-    }
-
-    private func checkForUnlockedDialogue() {
-        // Unlock Receptionist when Sedation Chart is found
-        if hasEvidence(named: "Sedation Chart"),
-           let i = suspects.firstIndex(where: { $0.name == "Receptionist" }) {
-            suspects[i].isUnlocked = true
-        }
-        // Unlock Peter Simmons when Vital Monitor Printout is found
-        if hasEvidence(named: "Vital Monitor Printout"),
-           let i = suspects.firstIndex(where: { $0.name == "Peter Simmons" }) {
-            suspects[i].isUnlocked = true
-        }
-    }
-
     private func getAnalysisResult(evidence: Evidence, tool: AnalysisTool) -> String {
         let combinations: [String: [AnalysisTool: String]] = [
             // Comparison Tool results
@@ -182,7 +125,8 @@ class GameState: ObservableObject {
             ],
             // Timeline Tool results
             "Room Access Log": [
-                .timeline: "Kathy Alvarez badged in at 2:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time."
+                .timeline: "Kathy Alvarez badged in at 2:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time.",
+                .contextLink: "Cross-referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
             ],
             "Vital Monitor Printout": [
                 .timeline: "Heart rate and oxygen levels were present at 2:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
@@ -197,9 +141,6 @@ class GameState: ObservableObject {
             // Context Link Tool results
             "Love Letter": [
                 .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 2:00 AM — this was personal, not protocol."
-            ],
-            "Room Access Log": [
-                .contextLink: "Cross-referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""

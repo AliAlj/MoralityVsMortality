@@ -25,30 +25,6 @@ struct Evidence: Identifiable, Codable {
     enum EvidenceType: String, Codable, CaseIterable {
         case physical = "Physical"
         case document = "Document"
-        case timestamp = "Timestamp"
-        case analysis = "Analysis"
-        case connection = "Connection"
-    }
-}
-
-// MARK: - Suspect Model
-struct Suspect: Identifiable, Codable {
-    let id: UUID
-    let name: String
-    let description: String
-    let suspicionLevel: Int
-    var isUnlocked: Bool
-    let portraitImage: String
-
-    init(name: String, description: String,
-         suspicionLevel: Int, isUnlocked: Bool = false,
-         portraitImage: String = "") {
-        self.id = UUID()
-        self.name = name
-        self.description = description
-        self.suspicionLevel = suspicionLevel
-        self.isUnlocked = isUnlocked
-        self.portraitImage = portraitImage
     }
 }
 
@@ -57,16 +33,11 @@ struct DialogueNode: Identifiable, Codable {
     let id: UUID
     let questionText: String
     let responses: [DialogueResponse]
-    let requiredEvidence: [String]
-    var isUnlocked: Bool
 
-    init(questionText: String, responses: [DialogueResponse],
-         requiredEvidence: [String], isUnlocked: Bool = false) {
+    init(questionText: String, responses: [DialogueResponse]) {
         self.id = UUID()
         self.questionText = questionText
         self.responses = responses
-        self.requiredEvidence = requiredEvidence
-        self.isUnlocked = isUnlocked
     }
 }
 
@@ -74,16 +45,11 @@ struct DialogueResponse: Identifiable, Codable {
     let id: UUID
     let text: String
     let suspectReaction: String
-    let revealsEvidence: String?
-    let changesRelationship: Int
 
-    init(text: String, suspectReaction: String,
-         revealsEvidence: String? = nil, changesRelationship: Int = 0) {
+    init(text: String, suspectReaction: String) {
         self.id = UUID()
         self.text = text
         self.suspectReaction = suspectReaction
-        self.revealsEvidence = revealsEvidence
-        self.changesRelationship = changesRelationship
     }
 }
 
@@ -106,7 +72,6 @@ struct EvidenceConnection: Identifiable, Codable {
 
     enum ConnectionType: String, Codable, CaseIterable {
         case timeline = "Timeline"
-        case location = "Location"
         case person = "Person"
         case method = "Method"
         case motive = "Motive"
@@ -157,12 +122,9 @@ struct InvestigationArea: Identifiable {
     let size: CGSize
     let imageName: String?
     let evidence: Evidence?
-    let revealedImageName: String?
-    var hasBeenSearched: Bool
 
     init(name: String, description: String, position: CGPoint,
-         size: CGSize, imageName: String? = nil, evidence: Evidence? = nil,
-         revealedImageName: String? = nil) {
+         size: CGSize, imageName: String? = nil, evidence: Evidence? = nil) {
         self.id = UUID()
         self.name = name
         self.description = description
@@ -170,21 +132,12 @@ struct InvestigationArea: Identifiable {
         self.size = size
         self.imageName = imageName
         self.evidence = evidence
-        self.revealedImageName = revealedImageName
-        self.hasBeenSearched = false
     }
 }
 
 enum InvestigationRoom: String, CaseIterable {
     case jailCell     = "Jail Cell"
     case hospitalRoom = "Hospital Room"
-
-    var label: String {
-        switch self {
-        case .hospitalRoom: return "ROOM 342"
-        case .jailCell:     return "CELL BLOCK D"
-        }
-    }
 
     var subtitle: String {
         switch self {
@@ -232,76 +185,6 @@ struct ConversationEntry: Identifiable {
     let id = UUID()
     let speaker: Speaker
     let text: String
-    let timestamp: Date
-
-    init(speaker: Speaker, text: String, timestamp: Date = Date()) {
-        self.speaker = speaker
-        self.text = text
-        self.timestamp = timestamp
-    }
 
     enum Speaker { case investigator, suspect }
-}
-
-// MARK: - Accusation
-struct AccusationOption: Identifiable {
-    let id = UUID()
-    let title: String
-    let description: String
-    let requiredEvidence: [String]
-    let outcome: AccusationOutcome
-    let response: String
-}
-
-enum AccusationOutcome {
-    case fullTruth, partialTruth, falseAccusation, needMoreEvidence
-}
-
-// MARK: - Final Choice
-enum ChoiceOutcome {
-    case arrest, cooperation, weakArrest, continueInvestigation, closedCase
-}
-
-struct FinalChoice: Identifiable {
-    let id = UUID()
-    let title: String
-    let description: String
-    let outcome: ChoiceOutcome
-    let requirements: String
-    let consequences: String
-}
-
-// MARK: - Case Review
-struct CaseReviewData {
-    let totalScore: Int
-    let evidenceCollected: Int
-    let realEvidenceFound: Int
-    let correctConnections: Int
-    let suspectCooperation: Int
-    let analysesPerformed: Int
-    let actsCompleted: Int
-
-    var grade: String {
-        switch totalScore {
-        case 90...: return "A+"
-        case 80..<90: return "A"
-        case 70..<80: return "B"
-        case 60..<70: return "C"
-        default: return "D"
-        }
-    }
-}
-
-// MARK: - Ending
-struct GameOutcome {
-    let title: String
-    let description: String
-    let endingType: EndingType
-
-    enum EndingType: String {
-        case success        = "Success"
-        case partialSuccess = "Partial Success"
-        case neutral        = "Neutral"
-        case failure        = "Failure"
-    }
 }
