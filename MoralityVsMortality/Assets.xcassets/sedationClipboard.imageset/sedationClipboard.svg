@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="74px" height="20px" viewBox="0 0 74 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Group</title>
+    <defs>
+        <linearGradient x1="86.0084235%" y1="58%" x2="20.513526%" y2="42%" id="linearGradient-1">
+            <stop stop-color="#B5B5B5" offset="0%"></stop>
+            <stop stop-color="#DBDBDB" offset="47.2314142%"></stop>
+            <stop stop-color="#B5B5B5" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Evidence" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group" transform="translate(1.0046, 0.7668)" stroke="#000000">
+            <polygon id="Path-2" fill="#FFFFFF" points="12.7826467 3 4.90883409 15.9699717 72.4010051 17.8615732 72.4010051 5.07824758"></polygon>
+            <polygon id="Path" fill="url(#linearGradient-1)" transform="translate(6.5, 8.2134) rotate(-61) translate(-6.5, -8.2134)" points="-1 7.00825159 2.34731367 7.00825159 2.34731367 5.21341633 10.4751986 5.21341633 10.4751986 7.00825159 14 7.00825159 14 11.2134163 -1 11.2134163"></polygon>
+        </g>
+    </g>
+</svg>

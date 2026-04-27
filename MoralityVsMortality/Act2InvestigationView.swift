@@ -3,12 +3,10 @@ import Combine
 
 // MARK: - Act 2: Wrapper View
 struct Act2InvestigationView: View {
-    @EnvironmentObject var gameState: GameState
     @StateObject private var viewModel = Act2InvestigationViewModel()
 
     var body: some View {
         Act2SceneInvestigationView(viewModel: viewModel)
-            .environmentObject(gameState)
     }
 }
 
@@ -25,11 +23,6 @@ class Act2InvestigationViewModel: ObservableObject {
     @Published var guardItemsGiven = false
     @Published var showingBelongingsReveal = false
     @Published var showingFormReveal = false
-    @Published var showingItemPopup: (imageName: String?, evidenceName: String)? = nil
-
-    // Pending evidence (added to gameState on popup dismiss)
-    private var pendingEvidence: Evidence? = nil
-    private var pendingAreaName: String? = nil
 
     let guardDialogue: [String] = [
         "You must be the investigator. I'm Jason Perry. I'll be escorting you through the facility.",
@@ -72,11 +65,8 @@ class Act2InvestigationViewModel: ObservableObject {
         // Evidence deferred until all guard popups are done
     }
 
-    func dismissFormReveal() {
+    func dismissFormReveal(in gameState: GameState) {
         showingFormReveal = false
-    }
-
-    func commitGuardEvidence(in gameState: GameState) {
         let belongings = Evidence(
             name: "Wayne's Belongings",
             description: "A sealed bag containing Wayne's personal items including his wallet and license. You'll need to examine this more closely later.",
@@ -118,6 +108,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 description: "A chart clipped to the bed frame",
                 position: CGPoint(x: 515, y: 320),
                 size: CGSize(width: 80, height: 60),
+                imageName: "sedationClipboard",
                 evidence: Evidence(
                     name: "Sedation Chart",
                     description: "Wayne's sedation dosage log. The prescribed amounts are significantly higher than standard levels for a routine procedure.",
@@ -132,6 +123,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 description: "The bedside vital signs monitor with a printout",
                 position: CGPoint(x: 90, y: 280),
                 size: CGSize(width: 80, height: 80),
+                imageName: "vitalMonitor",
                 evidence: Evidence(
                     name: "Vital Monitor Printout",
                     description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 2:00 AM. He was alive when found.",
@@ -167,26 +159,11 @@ class Act2InvestigationViewModel: ObservableObject {
     func searchArea(_ area: InvestigationArea, in gameState: GameState) {
         guard !gameState.isAreaSearched(area.name) else { return }
 
-        // Show popup; defer gameState mutation until popup is dismissed
         if let evidence = area.evidence {
-            showingItemPopup = (imageName: area.imageName, evidenceName: evidence.name)
-            pendingEvidence = evidence
-            pendingAreaName = area.name
+            gameState.collectEvidenceFromArea(evidence, areaName: area.name)
+        } else {
+            gameState.markAreaAsSearched(area.name)
         }
-    }
-
-    func dismissItemPopup() {
-        showingItemPopup = nil
-    }
-
-    func commitPendingEvidence(in gameState: GameState) {
-        if let evidence = pendingEvidence, let areaName = pendingAreaName {
-            gameState.collectEvidenceFromArea(evidence, areaName: areaName)
-        } else if let areaName = pendingAreaName {
-            gameState.markAreaAsSearched(areaName)
-        }
-        pendingEvidence = nil
-        pendingAreaName = nil
     }
 }
 
@@ -278,64 +255,11 @@ struct Act2SceneInvestigationView: View {
                     buttonText: "Continue"
                 ) {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.dismissFormReveal()
-                    }
-                    viewModel.commitGuardEvidence(in: gameState)
-                }
-            } else if let item = viewModel.showingItemPopup {
-                ZStack {
-                    Color.black.opacity(0.8)
-                        .ignoresSafeArea()
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            dismissItemPopupSafely()
-                        }
-                        .highPriorityGesture(
-                            TapGesture().onEnded {
-                                dismissItemPopupSafely()
-                            }
-                        )
-
-                    VStack(spacing: 16) {
-                        Text(item.evidenceName)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-
-                        if let imageName = item.imageName {
-                            Image(imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: 500, maxHeight: 400)
-                                .cornerRadius(12)
-                                .shadow(radius: 20)
-                        }
-
-                        HStack(spacing: 8) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Added to evidence.")
-                                .font(.subheadline)
-                                .foregroundColor(.green)
-                        }
-
-                        Text("Click anywhere to continue")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.5))
-                    }
-                    .onTapGesture {
-                        dismissItemPopupSafely()
+                        viewModel.dismissFormReveal(in: gameState)
                     }
                 }
             }
         }
-    }
-
-    private func dismissItemPopupSafely() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            viewModel.dismissItemPopup()
-        }
-        viewModel.commitPendingEvidence(in: gameState)
     }
 }
 
@@ -351,7 +275,6 @@ struct EvidencePopupOverlay: View {
         ZStack {
             Color.black.opacity(0.8)
                 .ignoresSafeArea()
-                .onTapGesture { onDismiss() }
 
             VStack(spacing: 16) {
                 Text(title)
@@ -361,10 +284,12 @@ struct EvidencePopupOverlay: View {
 
                 Image(imageName)
                     .resizable()
+                    .interpolation(.medium)
                     .scaledToFit()
-                    .frame(maxWidth: 500, maxHeight: 400)
+                    .frame(width: 420, height: 320)
+                    .clipped()
                     .cornerRadius(12)
-                    .shadow(radius: 20)
+                    .shadow(radius: 8)
 
                 if !subtitle.isEmpty {
                     HStack(spacing: 8) {
