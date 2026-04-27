@@ -4,24 +4,20 @@ import Combine
 // MARK: - Act 2: Wrapper View
 struct Act2InvestigationView: View {
     @EnvironmentObject var gameState: GameState
-    @StateObject private var viewModel = Act2ViewModel(gameState: GameState())
+    @StateObject private var viewModel = Act2InvestigationViewModel()
 
     var body: some View {
         Act2SceneInvestigationView(viewModel: viewModel)
-            .onAppear {
-                viewModel.setGameState(gameState)
-            }
+            .environmentObject(gameState)
     }
 }
 
 // MARK: - Act 2: Scene Investigation View Model
 @MainActor
-class Act2ViewModel: ObservableObject {
+class Act2InvestigationViewModel: ObservableObject {
     @Published var currentRoom: InvestigationRoom = .jailCell
     @Published var hospitalRoomAreas: [InvestigationArea] = []
     @Published var jailCellAreas: [InvestigationArea] = []
-    // Local area tracking (avoids gameState reads during render)
-    @Published var localSearchedAreas: Set<String> = []
 
     // Guard dialogue
     @Published var guardDialogueIndex = 0
@@ -50,19 +46,9 @@ class Act2ViewModel: ObservableObject {
         }
     }
 
-    var gameState: GameState
-    private var hasSetRealGameState = false
-
-    init(gameState: GameState) {
-        self.gameState = gameState
+    init() {
         setupHospitalRoomAreas()
         setupJailCellAreas()
-    }
-
-    func setGameState(_ state: GameState) {
-        guard !hasSetRealGameState else { return }
-        hasSetRealGameState = true
-        gameState = state
     }
 
     func advanceGuardDialogue() {
@@ -86,10 +72,10 @@ class Act2ViewModel: ObservableObject {
         // Evidence deferred until all guard popups are done
     }
 
-    func dismissFormReveal() {
+    func dismissFormReveal(in gameState: GameState) {
         showingFormReveal = false
 
-        // Batch-add both guard evidence pieces after all popups are dismissed
+        // Batch-add both guard evidence in a single mutation to prevent re-render cascade
         let belongings = Evidence(
             name: "Wayne's Belongings",
             description: "A sealed bag containing Wayne's personal items including his wallet and license. You'll need to examine this more closely later.",
@@ -106,8 +92,7 @@ class Act2ViewModel: ObservableObject {
             evidenceType: .document,
             metadata: ["status": "collected"]
         )
-        gameState.addEvidence(belongings)
-        gameState.addEvidence(intakeForm)
+        gameState.addMultipleEvidence([belongings, intakeForm])
     }
 
     private func setupHospitalRoomAreas() {
@@ -168,7 +153,7 @@ class Act2ViewModel: ObservableObject {
                 imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
-                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together. — K'",
+                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together.' Signed K.",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
@@ -178,9 +163,8 @@ class Act2ViewModel: ObservableObject {
         ]
     }
     
-    func searchArea(_ area: InvestigationArea) {
-        guard !localSearchedAreas.contains(area.name) else { return }
-        localSearchedAreas.insert(area.name)
+    func searchArea(_ area: InvestigationArea, in gameState: GameState) {
+        guard !gameState.isAreaSearched(area.name) else { return }
 
         // Show popup; defer gameState mutation until popup is dismissed
         if let evidence = area.evidence {
@@ -190,22 +174,23 @@ class Act2ViewModel: ObservableObject {
         }
     }
 
-    func dismissItemPopup() {
+    func dismissItemPopup(in gameState: GameState) {
         showingItemPopup = nil
-        if let name = pendingAreaName { gameState.markAreaAsSearched(name) }
-        if let evidence = pendingEvidence { gameState.addEvidence(evidence) }
+        // Batch area mark + evidence add into a single gameState mutation
+        if let evidence = pendingEvidence, let name = pendingAreaName {
+            gameState.collectEvidenceFromArea(evidence, areaName: name)
+        } else if let name = pendingAreaName {
+            gameState.markAreaAsSearched(name)
+        }
         pendingEvidence = nil
         pendingAreaName = nil
-    }
-
-    func isAreaSearched(_ area: InvestigationArea) -> Bool {
-        localSearchedAreas.contains(area.name)
     }
 }
 
 // MARK: - Act 2: Scene Investigation View
 struct Act2SceneInvestigationView: View {
-    @ObservedObject var viewModel: Act2ViewModel
+    @ObservedObject var viewModel: Act2InvestigationViewModel
+    @EnvironmentObject private var gameState: GameState
 
     var body: some View {
         VStack {
@@ -216,7 +201,7 @@ struct Act2SceneInvestigationView: View {
                 
                 Spacer()
                 
-                Text("Tap areas to search for evidence")
+                Text("Click areas to search for evidence")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -242,9 +227,9 @@ struct Act2SceneInvestigationView: View {
                     ForEach(viewModel.investigationAreas) { area in
                         InvestigationAreaView(
                             area: area,
-                            isSearched: viewModel.isAreaSearched(area),
+                            isSearched: gameState.isAreaSearched(area.name),
                             onTap: {
-                                viewModel.searchArea(area)
+                                viewModel.searchArea(area, in: gameState)
                             }
                         )
                         .position(
@@ -290,18 +275,22 @@ struct Act2SceneInvestigationView: View {
                     buttonText: "Continue"
                 ) {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.dismissFormReveal()
+                        viewModel.dismissFormReveal(in: gameState)
                     }
                 }
             } else if let item = viewModel.showingItemPopup {
                 ZStack {
                     Color.black.opacity(0.8)
                         .ignoresSafeArea()
+                        .contentShape(Rectangle())
                         .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                viewModel.dismissItemPopup()
-                            }
+                            dismissItemPopupSafely()
                         }
+                        .highPriorityGesture(
+                            TapGesture().onEnded {
+                                dismissItemPopupSafely()
+                            }
+                        )
 
                     VStack(spacing: 16) {
                         Text(item.evidenceName)
@@ -331,12 +320,16 @@ struct Act2SceneInvestigationView: View {
                             .foregroundColor(.white.opacity(0.5))
                     }
                     .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            viewModel.dismissItemPopup()
-                        }
+                        dismissItemPopupSafely()
                     }
                 }
             }
+        }
+    }
+
+    private func dismissItemPopupSafely() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            viewModel.dismissItemPopup(in: gameState)
         }
     }
 }
@@ -543,7 +536,7 @@ struct EvidenceSummaryView: View {
 
 // MARK: - Prison Guard Dialogue
 struct GuardDialogueView: View {
-    @ObservedObject var viewModel: Act2ViewModel
+    @ObservedObject var viewModel: Act2InvestigationViewModel
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 16) {

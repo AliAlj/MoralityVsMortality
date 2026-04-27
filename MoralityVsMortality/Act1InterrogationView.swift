@@ -164,7 +164,7 @@ class Act1ViewModel: ObservableObject {
             ),
             InterrogationQuestion(
                 questionText: "Why not call emergency response?",
-                responseText: "...I thought it was sedation-related. I didn't want to overreact."
+                responseText: "...I thought it was sedation related. I didn't want to overreact."
             ),
             InterrogationQuestion(
                 questionText: "And when the doctor arrived?",
@@ -206,7 +206,7 @@ class Act1ViewModel: ObservableObject {
             ),
             InterrogationQuestion(
                 questionText: "Anything unusual about the body?",
-                responseText: "...Injection marks. More than expected for a routine pre-op."
+                responseText: "...Injection marks. More than expected for a routine preop."
             )
         ]
     }

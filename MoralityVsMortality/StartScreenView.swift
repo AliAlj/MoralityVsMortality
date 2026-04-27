@@ -52,7 +52,7 @@ struct IntroScreenView: View {
     @State private var typingTask: Task<Void, Never>?
 
     private let pages: [String] = [
-        "2:00 AM — Tuesday, October 5th\n\nA sharp gasp cuts through the hospital corridor.\n\nWayne Michaels is found unresponsive.\n\nMinutes later, he is pronounced dead.",
+        "2:00 AM, Tuesday, October 5th\n\nA sharp gasp cuts through the hospital corridor.\n\nWayne Michaels is found unresponsive.\n\nMinutes later, he is pronounced dead.",
 
         "Wayne was a prison inmate serving a life sentence for attempted murder.\n\nOne week ago, he was transferred to the prison hospital following a violent altercation.\n\nHis condition was stable.\nHe was scheduled for a routine surgical procedure in the morning.",
 

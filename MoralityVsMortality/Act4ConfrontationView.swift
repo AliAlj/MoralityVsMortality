@@ -44,7 +44,7 @@ struct KathyFinalView: View {
         (.investigator, "When you found him, was he already dead?"),
         (.suspect, "...No."),
         (.investigator, "Then why didn't you call emergency response?"),
-        (.suspect, "...I thought he was over-sedated."),
+        (.suspect, "...I thought he was over sedated."),
         (.investigator, "And you still called the surgeon?"),
         (.suspect, "...He told me not to escalate."),
         (.investigator, "You knew something was wrong."),
@@ -64,7 +64,7 @@ struct KathyFinalView: View {
                     .clipShape(Circle())
 
                 VStack(alignment: .leading) {
-                    Text("Kathy Alvarez — Final Interrogation")
+                    Text("Kathy Alvarez, Final Interrogation")
                         .font(.headline)
                     Text("Triggered by Love Letter and vital evidence")
                         .font(.caption)
@@ -150,7 +150,7 @@ struct SurgeonConfrontationView: View {
                     .clipShape(Circle())
 
                 VStack(alignment: .leading) {
-                    Text("Dr. Viktor Kazimir — Confrontation")
+                    Text("Dr. Viktor Kazimir, Confrontation")
                         .font(.headline)
                     Text("The truth comes out")
                         .font(.caption)

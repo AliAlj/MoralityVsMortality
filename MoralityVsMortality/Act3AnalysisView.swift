@@ -64,6 +64,35 @@ struct Act3AnalysisView: View {
                     .environmentObject(gameState)
                     .transition(.opacity)
             }
+
+            #if DEBUG
+            // Debug navigation
+            VStack {
+                HStack {
+                    Spacer()
+                    Menu {
+                        ForEach(GameAct.allCases, id: \.rawValue) { act in
+                            Button("Jump to \(act.title)") { gameState.jumpToAct(act) }
+                        }
+                        Divider()
+                        Button("Reset") { gameState.resetGame() }
+                    } label: {
+                        Text("Debug")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.red.opacity(0.8))
+                            .cornerRadius(8)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .padding(8)
+                }
+                Spacer()
+            }
+            .zIndex(100)
+            #endif
         }
         .clipped()
     }
@@ -201,8 +230,16 @@ struct CaseBoardView: View {
 
                     // Progress
                     HStack {
-                        Text("Analyses: \(completedAnalyses.count)")
-                        Text("Connections: \(gameState.correctConnectionsCount)")
+                        Text("Analyses: \(gameState.analysisResults.count)")
+                        if gameState.analysisResults.count >= 3 {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Ready to continue")
+                                .foregroundColor(.green)
+                        } else {
+                            Text("Need \(max(0, 3 - gameState.analysisResults.count)) more")
+                                .foregroundColor(.orange)
+                        }
                     }
                     .font(.caption)
                     .foregroundColor(.white)

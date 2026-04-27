@@ -14,8 +14,9 @@ class GameState: ObservableObject {
     @Published var unlockedDialogue: [DialogueNode] = []
     @Published var evidenceConnections: [EvidenceConnection] = []
     @Published var gameCompleted: Bool = false
-    // Act-specific
-    @Published var searchedAreas: Set<String> = []
+    // Act-specific (searchedAreas is not @Published to reduce re-render cascades;
+    // its changes are picked up when collectedEvidence triggers a re-render)
+    var searchedAreas: Set<String> = []
     @Published var analysisResults: [String: String] = [:]
 
     // MARK: - Computed
@@ -27,7 +28,7 @@ class GameState: ObservableObject {
         switch currentAct {
         case .interrogation:  return unlockedDialogue.count >= 2
         case .investigation:  return realEvidenceCount >= 6
-        case .analysis:       return correctConnectionsCount >= 2
+        case .analysis:       return analysisResults.count >= 3
         case .confrontation:  return false  // ends game
         }
     }
@@ -37,6 +38,18 @@ class GameState: ObservableObject {
 
     // MARK: - Evidence
     func addEvidence(_ evidence: Evidence) {
+        guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
+        collectedEvidence.append(evidence)
+    }
+
+    func addMultipleEvidence(_ items: [Evidence]) {
+        let new = items.filter { item in !collectedEvidence.contains(where: { $0.name == item.name }) }
+        guard !new.isEmpty else { return }
+        collectedEvidence.append(contentsOf: new)
+    }
+
+    func collectEvidenceFromArea(_ evidence: Evidence, areaName: String) {
+        searchedAreas.insert(areaName)
         guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
         collectedEvidence.append(evidence)
     }
@@ -115,21 +128,21 @@ class GameState: ObservableObject {
             // Timeline Tool results
             "Room Access Log": [
                 .timeline: "Kathy Alvarez badged in at 2:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time.",
-                .contextLink: "Cross-referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
+                .contextLink: "Cross referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
             ],
             "Vital Monitor Printout": [
                 .timeline: "Heart rate and oxygen levels were present at 2:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
             ],
             // Medical Analysis Tool results
             "Syringe": [
-                .medical: "Traces of elevated sedative compounds detected. Dosage far exceeds standard pre-operative levels. This was not accidental."
+                .medical: "Traces of elevated sedative compounds detected. Dosage far exceeds standard preoperative levels. This was not accidental."
             ],
             "Sedation Chart": [
                 .medical: "Prescribed dosage is significantly higher than normal for a routine procedure. Sedation levels were intentionally increased."
             ],
             // Context Link Tool results
             "Love Letter": [
-                .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 2:00 AM — this was personal, not protocol."
+                .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 2:00 AM. This was personal, not protocol."
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""

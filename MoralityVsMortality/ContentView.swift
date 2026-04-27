@@ -186,7 +186,7 @@ struct BottomNavigationView: View {
         case .investigation:
             return "Find \(max(0, 6 - gameState.realEvidenceCount)) more evidence pieces"
         case .analysis:
-            return "Complete analyses and make connections"
+            return "Complete \(max(0, 3 - gameState.analysisResults.count)) more analyses"
         case .confrontation:
             return ""
         }
