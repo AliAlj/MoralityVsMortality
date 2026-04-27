@@ -3,8 +3,14 @@ import Combine
 
 // MARK: - Act 1: Wrapper View
 struct Act1InvestigationView: View {
+    @EnvironmentObject var gameState: GameState
+    @StateObject private var viewModel = Act1ViewModel(gameState: GameState())
+
     var body: some View {
-        Act1SceneInvestigationView()
+        Act1SceneInvestigationView(viewModel: viewModel)
+            .onAppear {
+                viewModel.setGameState(gameState)
+            }
     }
 }
 
@@ -14,6 +20,9 @@ class Act1ViewModel: ObservableObject {
     @Published var currentRoom: InvestigationRoom = .jailCell
     @Published var hospitalRoomAreas: [InvestigationArea] = []
     @Published var jailCellAreas: [InvestigationArea] = []
+    // Local area tracking (avoids gameState reads during render)
+    @Published var localSearchedAreas: Set<String> = []
+
     // Guard dialogue
     @Published var guardDialogueIndex = 0
     @Published var showingGuard = true
@@ -22,12 +31,16 @@ class Act1ViewModel: ObservableObject {
     @Published var showingFormReveal = false
     @Published var showingItemPopup: (imageName: String?, evidenceName: String)? = nil
 
+    // Pending evidence (added to gameState on popup dismiss)
+    private var pendingEvidence: Evidence? = nil
+    private var pendingAreaName: String? = nil
+
     let guardDialogue: [String] = [
-        "You must be the investigator. I'm Jason Perry — I'll be escorting you through the facility.",
+        "You must be the investigator. I'm Jason Perry. I'll be escorting you through the facility.",
         "An inmate named Wayne Michaels died last night. Officially, it was a heart attack. You're here to confirm that.",
         "You can search two locations: his jail cell and the hospital room where he was found.",
         "Look around carefully. Hover over anything that catches your eye and click to collect it as evidence.",
-        "Oh — before I forget. Here, take these. The victim's personal belongings and his prison intake form."
+        "Oh, before I forget. Here, take these. The victim's personal belongings and his prison intake form."
     ]
 
     var investigationAreas: [InvestigationArea] {
@@ -70,8 +83,13 @@ class Act1ViewModel: ObservableObject {
     func dismissBelongingsReveal() {
         showingBelongingsReveal = false
         showingFormReveal = true
+        // Evidence deferred until all guard popups are done
+    }
 
-        // Add belongings as sealed evidence
+    func dismissFormReveal() {
+        showingFormReveal = false
+
+        // Batch-add both guard evidence pieces after all popups are dismissed
         let belongings = Evidence(
             name: "Wayne's Belongings",
             description: "A sealed bag containing Wayne's personal items including his wallet and license. You'll need to examine this more closely later.",
@@ -80,13 +98,6 @@ class Act1ViewModel: ObservableObject {
             evidenceType: .physical,
             metadata: ["status": "sealed", "contents": "wallet, license, personal items"]
         )
-        gameState.addEvidence(belongings)
-    }
-
-    func dismissFormReveal() {
-        showingFormReveal = false
-
-        // Add intake form evidence
         let intakeForm = Evidence(
             name: "Prison Intake Form",
             description: "Wayne's prison intake form. You'll need to examine it more closely later.",
@@ -95,6 +106,7 @@ class Act1ViewModel: ObservableObject {
             evidenceType: .document,
             metadata: ["status": "collected"]
         )
+        gameState.addEvidence(belongings)
         gameState.addEvidence(intakeForm)
     }
 
@@ -136,7 +148,7 @@ class Act1ViewModel: ObservableObject {
                 size: CGSize(width: 80, height: 80),
                 evidence: Evidence(
                     name: "Vital Monitor Printout",
-                    description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 2:00 AM — he was alive when found.",
+                    description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 2:00 AM. He was alive when found.",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .physical,
@@ -156,7 +168,7 @@ class Act1ViewModel: ObservableObject {
                 imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
-                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together. — K'",
+                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together. K'",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
@@ -167,30 +179,34 @@ class Act1ViewModel: ObservableObject {
     }
     
     func searchArea(_ area: InvestigationArea) {
-        guard !gameState.isAreaSearched(area.name) else { return }
+        guard !localSearchedAreas.contains(area.name) else { return }
+        localSearchedAreas.insert(area.name)
 
-        // Show pop-up first (before triggering gameState changes)
+        // Show popup; defer gameState mutation until popup is dismissed
         if let evidence = area.evidence {
             showingItemPopup = (imageName: area.imageName, evidenceName: evidence.name)
-        }
-
-        // Batch gameState changes — these trigger view re-renders
-        gameState.markAreaAsSearched(area.name)
-        if let evidence = area.evidence {
-            gameState.addEvidence(evidence)
+            pendingEvidence = evidence
+            pendingAreaName = area.name
         }
     }
-    
+
+    func dismissItemPopup() {
+        showingItemPopup = nil
+        if let name = pendingAreaName { gameState.markAreaAsSearched(name) }
+        if let evidence = pendingEvidence { gameState.addEvidence(evidence) }
+        pendingEvidence = nil
+        pendingAreaName = nil
+    }
+
     func isAreaSearched(_ area: InvestigationArea) -> Bool {
-        gameState.isAreaSearched(area.name)
+        localSearchedAreas.contains(area.name)
     }
 }
 
 // MARK: - Act 1: Scene Investigation View
 struct Act1SceneInvestigationView: View {
-    @EnvironmentObject private var gameState: GameState
-    @StateObject private var viewModel = Act1ViewModel(gameState: GameState())
-    
+    @ObservedObject var viewModel: Act1ViewModel
+
     var body: some View {
         VStack {
             // Instructions
@@ -245,9 +261,6 @@ struct Act1SceneInvestigationView: View {
             // Evidence summary
             EvidenceSummaryView()
         }
-        .onAppear {
-            viewModel.setGameState(gameState)
-        }
         // Guard dialogue — bottom right, doesn't block room
         .overlay(alignment: .bottomTrailing) {
             if viewModel.showingGuard {
@@ -286,7 +299,7 @@ struct Act1SceneInvestigationView: View {
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                viewModel.showingItemPopup = nil
+                                viewModel.dismissItemPopup()
                             }
                         }
 
@@ -319,7 +332,7 @@ struct Act1SceneInvestigationView: View {
                     }
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            viewModel.showingItemPopup = nil
+                            viewModel.dismissItemPopup()
                         }
                     }
                 }
@@ -584,7 +597,7 @@ struct GuardDialogueView: View {
 }
 
 #Preview {
-    Act1SceneInvestigationView()
+    Act1InvestigationView()
         .environmentObject(GameState())
         .frame(width: 800, height: 600)
 }

@@ -17,6 +17,7 @@ struct Act3AnalysisView: View {
                 .clipped()
 
             Color.black.opacity(lightsOn ? 0.1 : 0.5)
+                .allowsHitTesting(false)
 
             // Light switch and bulletin (when not on board)
             if !showBoard {
@@ -64,6 +65,7 @@ struct Act3AnalysisView: View {
                     .transition(.opacity)
             }
         }
+        .clipped()
     }
 }
 
@@ -88,6 +90,7 @@ struct CaseBoardView: View {
                 .clipped()
 
             Color.black.opacity(0.3)
+                .allowsHitTesting(false)
 
             HStack(spacing: 0) {
                 // Left side: Evidence on the board
@@ -150,7 +153,7 @@ struct CaseBoardView: View {
                                     .cornerRadius(6)
                             }
 
-                            if selectedEvidence.count == 2 && selectedTool != nil {
+                            if selectedTool != nil {
                                 Button("Analyze") {
                                     performAnalysis()
                                 }
@@ -302,13 +305,11 @@ struct CaseBoardView: View {
     }
 
     private func performAnalysis() {
-        guard selectedEvidence.count == 2,
+        guard !selectedEvidence.isEmpty,
               let tool = selectedTool else { return }
 
         // Capture selection before any state changes
         let selected = selectedEvidence
-        let e1 = selected[0]
-        let e2 = selected[1]
         selectedEvidence.removeAll()
 
         // Try analyzing each selected evidence with the tool
@@ -325,23 +326,27 @@ struct CaseBoardView: View {
         }
 
         if !foundResult {
-            analysisResult = "These pieces don't reveal anything with this tool. Try a different combination."
+            analysisResult = "This doesn't reveal anything with this tool. Try a different combination."
         }
 
-        // Also create a connection between the two evidence pieces
-        let connectionExists = gameState.evidenceConnections.contains { c in
-            (c.evidence1ID == e1.id && c.evidence2ID == e2.id) ||
-            (c.evidence1ID == e2.id && c.evidence2ID == e1.id)
-        }
-        if !connectionExists && foundResult {
-            let connectionType: EvidenceConnection.ConnectionType
-            switch tool {
-            case .comparison: connectionType = .method
-            case .timeline: connectionType = .timeline
-            case .medical: connectionType = .method
-            case .contextLink: connectionType = .person
+        // Create a connection if two evidence pieces were selected
+        if selected.count == 2 && foundResult {
+            let e1 = selected[0]
+            let e2 = selected[1]
+            let connectionExists = gameState.evidenceConnections.contains { c in
+                (c.evidence1ID == e1.id && c.evidence2ID == e2.id) ||
+                (c.evidence1ID == e2.id && c.evidence2ID == e1.id)
             }
-            gameState.createConnection(evidence1ID: e1.id, evidence2ID: e2.id, type: connectionType)
+            if !connectionExists {
+                let connectionType: EvidenceConnection.ConnectionType
+                switch tool {
+                case .comparison: connectionType = .method
+                case .timeline: connectionType = .timeline
+                case .medical: connectionType = .method
+                case .contextLink: connectionType = .person
+                }
+                gameState.createConnection(evidence1ID: e1.id, evidence2ID: e2.id, type: connectionType)
+            }
         }
     }
 }
