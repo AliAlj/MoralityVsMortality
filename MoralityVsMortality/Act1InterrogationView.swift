@@ -120,7 +120,7 @@ class Act1ViewModel: ObservableObject {
 
         let node = DialogueNode(
             questionText: question.questionText,
-            responses: [DialogueResponse(text: question.responseText, suspectReaction: "")]
+            responses: [DialogueResponse(text: question.responseText)]
         )
         gameState.unlockDialogueNode(node)
         // Check if all questions for this stage are done
@@ -326,7 +326,8 @@ struct Act1InterrogationMainView: View {
                                 entry: entry,
                                 playerImage: gameState.selectedDetective,
                                 suspectImage: viewModel.currentStage.portraitImage,
-                                suspectName: viewModel.currentStage.suspectName
+                                suspectName: viewModel.currentStage.suspectName,
+                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                             )
                             .id(entry.id)
                         }
@@ -414,6 +415,7 @@ struct ConversationBubbleView: View {
     let playerImage: String
     let suspectImage: String
     var suspectName: String = "Suspect"
+    var playerName: String = "You"
 
     private var isPlayer: Bool { entry.speaker == .investigator }
 
@@ -432,7 +434,7 @@ struct ConversationBubbleView: View {
                     .cornerRadius(12)
                     .foregroundColor(isPlayer ? .white : .primary)
 
-                Text(isPlayer ? "You" : suspectName)
+                Text(isPlayer ? playerName : suspectName)
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }

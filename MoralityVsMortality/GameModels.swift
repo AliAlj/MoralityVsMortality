@@ -44,37 +44,10 @@ struct DialogueNode: Identifiable, Codable {
 struct DialogueResponse: Identifiable, Codable {
     let id: UUID
     let text: String
-    let suspectReaction: String
 
-    init(text: String, suspectReaction: String) {
+    init(text: String) {
         self.id = UUID()
         self.text = text
-        self.suspectReaction = suspectReaction
-    }
-}
-
-// MARK: - Evidence Connection
-struct EvidenceConnection: Identifiable, Codable {
-    let id: UUID
-    let evidence1ID: UUID
-    let evidence2ID: UUID
-    let connectionType: ConnectionType
-    let isCorrect: Bool
-
-    init(evidence1ID: UUID, evidence2ID: UUID,
-         connectionType: ConnectionType, isCorrect: Bool) {
-        self.id = UUID()
-        self.evidence1ID = evidence1ID
-        self.evidence2ID = evidence2ID
-        self.connectionType = connectionType
-        self.isCorrect = isCorrect
-    }
-
-    enum ConnectionType: String, Codable, CaseIterable {
-        case timeline = "Timeline"
-        case person = "Person"
-        case method = "Method"
-        case motive = "Motive"
     }
 }
 

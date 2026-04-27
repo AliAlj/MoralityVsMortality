@@ -355,7 +355,7 @@ struct CaseBoardView: View {
             if let result = gameState.performAnalysis(evidenceID: evidence.id, tool: tool) {
                 analysisResult = result
                 completedAnalyses.append(
-                    AnalysisResult(evidence: evidence, tool: tool, result: result)
+                    AnalysisResult(evidence: evidence, tool: tool)
                 )
                 foundResult = true
                 break
@@ -364,26 +364,6 @@ struct CaseBoardView: View {
 
         if !foundResult {
             analysisResult = "This doesn't reveal anything with this tool. Try a different combination."
-        }
-
-        // Create a connection if two evidence pieces were selected
-        if selected.count == 2 && foundResult {
-            let e1 = selected[0]
-            let e2 = selected[1]
-            let connectionExists = gameState.evidenceConnections.contains { c in
-                (c.evidence1ID == e1.id && c.evidence2ID == e2.id) ||
-                (c.evidence1ID == e2.id && c.evidence2ID == e1.id)
-            }
-            if !connectionExists {
-                let connectionType: EvidenceConnection.ConnectionType
-                switch tool {
-                case .comparison: connectionType = .method
-                case .timeline: connectionType = .timeline
-                case .medical: connectionType = .method
-                case .contextLink: connectionType = .person
-                }
-                gameState.createConnection(evidence1ID: e1.id, evidence2ID: e2.id, type: connectionType)
-            }
         }
     }
 }
@@ -446,7 +426,6 @@ struct AnalysisResult: Identifiable {
     let id = UUID()
     let evidence: Evidence
     let tool: AnalysisTool
-    let result: String
 }
 
 // MARK: - Office Bulletin Button

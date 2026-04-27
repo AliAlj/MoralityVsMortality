@@ -85,7 +85,8 @@ struct KathyFinalView: View {
                                 entry: entry,
                                 playerImage: gameState.selectedDetective,
                                 suspectImage: "prisonNurse",
-                                suspectName: "Kathy Alvarez"
+                                suspectName: "Kathy Alvarez",
+                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                             )
                             .id(entry.id)
                         }
@@ -171,7 +172,8 @@ struct SurgeonConfrontationView: View {
                                 entry: entry,
                                 playerImage: gameState.selectedDetective,
                                 suspectImage: "prisonSurgeon",
-                                suspectName: "Dr. Viktor Kazimir"
+                                suspectName: "Dr. Viktor Kazimir",
+                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                             )
                             .id(entry.id)
                         }

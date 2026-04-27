@@ -72,10 +72,11 @@ class Act2InvestigationViewModel: ObservableObject {
         // Evidence deferred until all guard popups are done
     }
 
-    func dismissFormReveal(in gameState: GameState) {
+    func dismissFormReveal() {
         showingFormReveal = false
+    }
 
-        // Batch-add both guard evidence in a single mutation to prevent re-render cascade
+    func commitGuardEvidence(in gameState: GameState) {
         let belongings = Evidence(
             name: "Wayne's Belongings",
             description: "A sealed bag containing Wayne's personal items including his wallet and license. You'll need to examine this more closely later.",
@@ -174,13 +175,15 @@ class Act2InvestigationViewModel: ObservableObject {
         }
     }
 
-    func dismissItemPopup(in gameState: GameState) {
+    func dismissItemPopup() {
         showingItemPopup = nil
-        // Batch area mark + evidence add into a single gameState mutation
-        if let evidence = pendingEvidence, let name = pendingAreaName {
-            gameState.collectEvidenceFromArea(evidence, areaName: name)
-        } else if let name = pendingAreaName {
-            gameState.markAreaAsSearched(name)
+    }
+
+    func commitPendingEvidence(in gameState: GameState) {
+        if let evidence = pendingEvidence, let areaName = pendingAreaName {
+            gameState.collectEvidenceFromArea(evidence, areaName: areaName)
+        } else if let areaName = pendingAreaName {
+            gameState.markAreaAsSearched(areaName)
         }
         pendingEvidence = nil
         pendingAreaName = nil
@@ -275,8 +278,9 @@ struct Act2SceneInvestigationView: View {
                     buttonText: "Continue"
                 ) {
                     withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.dismissFormReveal(in: gameState)
+                        viewModel.dismissFormReveal()
                     }
+                    viewModel.commitGuardEvidence(in: gameState)
                 }
             } else if let item = viewModel.showingItemPopup {
                 ZStack {
@@ -329,8 +333,9 @@ struct Act2SceneInvestigationView: View {
 
     private func dismissItemPopupSafely() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            viewModel.dismissItemPopup(in: gameState)
+            viewModel.dismissItemPopup()
         }
+        viewModel.commitPendingEvidence(in: gameState)
     }
 }
 

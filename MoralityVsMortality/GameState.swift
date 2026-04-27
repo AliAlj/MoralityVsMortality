@@ -12,7 +12,6 @@ class GameState: ObservableObject {
     @Published var currentAct: GameAct = .interrogation
     @Published var collectedEvidence: [Evidence] = []
     @Published var unlockedDialogue: [DialogueNode] = []
-    @Published var evidenceConnections: [EvidenceConnection] = []
     @Published var gameCompleted: Bool = false
     // Act-specific (searchedAreas is not @Published to reduce re-render cascades;
     // its changes are picked up when collectedEvidence triggers a re-render)
@@ -22,7 +21,6 @@ class GameState: ObservableObject {
     // MARK: - Computed
     var realEvidenceCount: Int   { collectedEvidence.filter(\.isRealEvidence).count }
     var totalEvidenceFound: Int  { collectedEvidence.count }
-    var correctConnectionsCount: Int { evidenceConnections.filter(\.isCorrect).count }
 
     var canProgressToNextAct: Bool {
         switch currentAct {
@@ -81,16 +79,6 @@ class GameState: ObservableObject {
         return result
     }
 
-    // MARK: - Connections (Act 3)
-    func createConnection(evidence1ID: UUID, evidence2ID: UUID,
-                          type: EvidenceConnection.ConnectionType) {
-        let correct = validateConnection(e1: evidence1ID, e2: evidence2ID, type: type)
-        evidenceConnections.append(
-            EvidenceConnection(evidence1ID: evidence1ID, evidence2ID: evidence2ID,
-                               connectionType: type, isCorrect: correct)
-        )
-    }
-
     // MARK: - Progression
     func progressToNextAct() {
         guard canProgressToNextAct else { return }
@@ -110,7 +98,6 @@ class GameState: ObservableObject {
         collectedEvidence.removeAll()
         searchedAreas.removeAll()
         unlockedDialogue.removeAll()
-        evidenceConnections.removeAll()
         analysisResults.removeAll()
         gameCompleted = false
     }
@@ -146,25 +133,5 @@ class GameState: ObservableObject {
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""
-    }
-
-    private func validateConnection(e1: UUID, e2: UUID,
-                                    type: EvidenceConnection.ConnectionType) -> Bool {
-        guard let ev1 = getEvidence(by: e1),
-              let ev2 = getEvidence(by: e2) else { return false }
-
-        let correct: [(String, String, EvidenceConnection.ConnectionType)] = [
-            ("Wayne's License", "Prison Intake Form", .method),
-            ("Room Access Log", "Vital Monitor Printout", .timeline),
-            ("Syringe", "Sedation Chart", .method),
-            ("Love Letter", "Room Access Log", .person),
-            ("Vital Monitor Printout", "Syringe", .timeline),
-            ("Sedation Chart", "Prison Intake Form", .motive)
-        ]
-
-        return correct.contains { c in
-            (c.0 == ev1.name && c.1 == ev2.name && c.2 == type) ||
-            (c.0 == ev2.name && c.1 == ev1.name && c.2 == type)
-        }
     }
 }
