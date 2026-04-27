@@ -184,7 +184,7 @@ struct BottomNavigationView: View {
         case .interrogation:
             return "Unlock \(max(0, 2 - gameState.unlockedDialogue.count)) more dialogue branches"
         case .investigation:
-            return "Find \(max(0, 3 - gameState.realEvidenceCount)) more evidence pieces"
+            return "Find \(max(0, 6 - gameState.realEvidenceCount)) more evidence pieces"
         case .analysis:
             return "Complete analyses and make connections"
         case .confrontation:

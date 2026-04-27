@@ -54,10 +54,17 @@ class Act2ViewModel: ObservableObject {
     @Published var completedStages: Set<Int> = []
 
     var gameState: GameState
+    private var hasSetRealGameState = false
 
     init(gameState: GameState) {
         self.gameState = gameState
         loadStage(.kathy)
+    }
+
+    func setGameState(_ state: GameState) {
+        guard !hasSetRealGameState else { return }
+        hasSetRealGameState = true
+        gameState = state
     }
 
     func loadStage(_ stage: InterrogationStage) {
@@ -328,9 +335,6 @@ struct Act2InterrogationMainView: View {
                 }
 
                 Spacer()
-
-                CooperationMeterView()
-                    .frame(width: 180)
             }
             .padding()
             .background(Color.gray.opacity(0.05))
@@ -411,7 +415,7 @@ struct Act2InterrogationMainView: View {
             }
         }
         .onAppear {
-            viewModel.gameState = gameState
+            viewModel.setGameState(gameState)
         }
     }
 

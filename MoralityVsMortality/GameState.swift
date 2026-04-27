@@ -31,7 +31,7 @@ class GameState: ObservableObject {
     var canProgressToNextAct: Bool {
         switch currentAct {
         case .interrogation:  return unlockedDialogue.count >= 2
-        case .investigation:  return realEvidenceCount >= 3
+        case .investigation:  return realEvidenceCount >= 6
         case .analysis:       return analysisResults.count >= 2 && correctConnectionsCount >= 2
         case .confrontation:  return false  // ends game
         }
@@ -44,7 +44,7 @@ class GameState: ObservableObject {
 
     // MARK: - Evidence
     func addEvidence(_ evidence: Evidence) {
-        guard !collectedEvidence.contains(where: { $0.id == evidence.id }) else { return }
+        guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
         collectedEvidence.append(evidence)
         checkForUnlockedDialogue()
         calculateScore()

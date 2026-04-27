@@ -23,7 +23,7 @@ class Act1ViewModel: ObservableObject {
     @Published var guardItemsGiven = false
     @Published var showingBelongingsReveal = false
     @Published var showingFormReveal = false
-    @Published var showingItemPopup: String? = nil  // asset name for clicked evidence
+    @Published var showingItemPopup: (imageName: String?, evidenceName: String)? = nil
 
     let guardDialogue: [String] = [
         "You must be the investigator. I'm Jason Perry — I'll be escorting you through the facility.",
@@ -41,11 +41,18 @@ class Act1ViewModel: ObservableObject {
     }
 
     var gameState: GameState
+    private var hasSetRealGameState = false
 
     init(gameState: GameState) {
         self.gameState = gameState
         setupHospitalRoomAreas()
         setupJailCellAreas()
+    }
+
+    func setGameState(_ state: GameState) {
+        guard !hasSetRealGameState else { return }
+        hasSetRealGameState = true
+        gameState = state
     }
 
     func advanceGuardDialogue() {
@@ -172,14 +179,8 @@ class Act1ViewModel: ObservableObject {
         // Add evidence to inventory
         if let evidence = area.evidence {
             gameState.addEvidence(evidence)
-
-            // Show pop-up of the item (like the guard items)
-            if let imageName = area.imageName {
-                // Crumbled paper reveal is deferred to Act 3
-                if area.name != "Crumbled Paper" {
-                    showingItemPopup = imageName
-                }
-            }
+            // Show pop-up for every item
+            showingItemPopup = (imageName: area.imageName, evidenceName: evidence.name)
         }
         
         // Update the area in the correct room's array
@@ -234,6 +235,7 @@ struct Act1SceneInvestigationView: View {
                 ZStack {
                     // Room background
                     RoomBackgroundView(room: viewModel.currentRoom)
+                        .allowsHitTesting(false)
                     
                     // Interactive areas - positions scale to available space
                     ForEach(viewModel.investigationAreas) { area in
@@ -259,12 +261,12 @@ struct Act1SceneInvestigationView: View {
             EvidenceSummaryView()
         }
         .onAppear {
-            viewModel.gameState = gameState
+            viewModel.setGameState(gameState)
         }
         .sheet(item: $viewModel.showingEvidenceDetail) { evidence in
             EvidenceDetailSheet(evidence: evidence)
         }
-        // Guard dialogue overlay
+        // Guard dialogue — bottom right, doesn't block room
         .overlay(alignment: .bottomTrailing) {
             if viewModel.showingGuard {
                 GuardDialogueView(viewModel: viewModel)
@@ -272,7 +274,7 @@ struct Act1SceneInvestigationView: View {
                     .transition(.move(edge: .trailing))
             }
         }
-        // Belongings pop-up
+        // Full-screen popups — only one shows at a time
         .overlay {
             if viewModel.showingBelongingsReveal {
                 EvidencePopupOverlay(
@@ -285,11 +287,7 @@ struct Act1SceneInvestigationView: View {
                         viewModel.dismissBelongingsReveal()
                     }
                 }
-            }
-        }
-        // Form pop-up
-        .overlay {
-            if viewModel.showingFormReveal {
+            } else if viewModel.showingFormReveal {
                 EvidencePopupOverlay(
                     title: "Prison Intake Form",
                     imageName: "waynesForm",
@@ -300,19 +298,47 @@ struct Act1SceneInvestigationView: View {
                         viewModel.dismissFormReveal()
                     }
                 }
-            }
-        }
-        // Evidence item pop-up (when clicking items in the room)
-        .overlay {
-            if let itemImage = viewModel.showingItemPopup {
-                EvidencePopupOverlay(
-                    title: "Evidence Collected",
-                    imageName: itemImage,
-                    subtitle: "Added to evidence.",
-                    buttonText: "Got it"
-                ) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.showingItemPopup = nil
+            } else if let item = viewModel.showingItemPopup {
+                ZStack {
+                    Color.black.opacity(0.8)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                viewModel.showingItemPopup = nil
+                            }
+                        }
+
+                    VStack(spacing: 16) {
+                        Text(item.evidenceName)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+
+                        if let imageName = item.imageName {
+                            Image(imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: 500, maxHeight: 400)
+                                .cornerRadius(12)
+                                .shadow(radius: 20)
+                        }
+
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Added to evidence.")
+                                .font(.subheadline)
+                                .foregroundColor(.green)
+                        }
+
+                        Text("Click anywhere to continue")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            viewModel.showingItemPopup = nil
+                        }
                     }
                 }
             }
@@ -332,6 +358,7 @@ struct EvidencePopupOverlay: View {
         ZStack {
             Color.black.opacity(0.8)
                 .ignoresSafeArea()
+                .onTapGesture { onDismiss() }
 
             VStack(spacing: 16) {
                 Text(title)
@@ -356,20 +383,11 @@ struct EvidencePopupOverlay: View {
                     }
                 }
 
-                Button {
-                    onDismiss()
-                } label: {
-                    Text(buttonText)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
+                Text("Click anywhere to continue")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.5))
             }
+            .onTapGesture { onDismiss() }
         }
     }
 }
@@ -431,7 +449,6 @@ struct InvestigationAreaView: View {
                         .resizable()
                         .scaledToFit()
                         .brightness(isHovered && !isSearched ? 0.2 : 0)
-                        .allowsHitTesting(false)
 
                     if isHovered && !isSearched {
                         RoundedRectangle(cornerRadius: 8)
@@ -519,7 +536,7 @@ struct EvidenceSummaryView: View {
                 }
             } else {
                 VStack(alignment: .trailing) {
-                    Text("Need \(max(0, 3 - gameState.realEvidenceCount)) more")
+                    Text("Need \(max(0, 6 - gameState.realEvidenceCount)) more")
                         .font(.caption)
                         .foregroundColor(.orange)
                     
