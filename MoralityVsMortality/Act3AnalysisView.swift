@@ -20,31 +20,38 @@ struct Act3AnalysisView: View {
 
             // Light switch and bulletin (when not on board)
             if !showBoard {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                lightsOn.toggle()
-                            }
-                        } label: {
-                            Image(lightsOn ? "lightOn" : "lightOff")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 60)
+                GeometryReader { geo in
+                    // Light switch — top left area
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            lightsOn.toggle()
                         }
-                        .buttonStyle(.plain)
-                        .padding(.leading, 40)
-
-                        Spacer()
+                    } label: {
+                        Image(lightsOn ? "lightOn" : "lightOff")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: geo.size.height * 0.1)
                     }
-                    Spacer()
-                }
+                    .buttonStyle(.plain)
+                    .position(
+                        x: geo.size.width * 0.05,
+                        y: geo.size.height * 0.35
+                    )
 
-                OfficeBulletinButton {
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        showBoard = true
+                    // Bulletin board — scales with window
+                    OfficeBulletinButton {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            showBoard = true
+                        }
                     }
+                    .frame(
+                        width: geo.size.width * 0.448,
+                        height: geo.size.height * 0.38
+                    )
+                    .position(
+                        x: geo.size.width * 0.545,
+                        y: geo.size.height * 0.42
+                    )
                 }
             }
 
@@ -408,7 +415,7 @@ struct OfficeBulletinButton: View {
             Image("officeBulletin")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 270)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .brightness(isHovered ? 0.15 : 0)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
@@ -416,6 +423,7 @@ struct OfficeBulletinButton: View {
                         .shadow(color: .white.opacity(isHovered ? 0.4 : 0), radius: 8)
                 )
         }
+        .offset(x: -25, y: -100)
         .buttonStyle(.plain)
         .onHover { hovering in
             isHovered = hovering
@@ -426,5 +434,5 @@ struct OfficeBulletinButton: View {
 #Preview {
     Act3AnalysisView()
         .environmentObject(GameState())
-        .frame(width: 800, height: 550)
+        .frame(width: 1100, height: 650)
 }

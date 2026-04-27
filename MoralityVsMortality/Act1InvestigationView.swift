@@ -16,9 +16,22 @@ class Act1ViewModel: ObservableObject {
     @Published var jailCellAreas: [InvestigationArea] = []
     @Published var showingEvidenceDetail: Evidence? = nil
     @Published var showingRevealedImage: String? = nil
+
+    // Guard dialogue
     @Published var guardDialogueIndex = 0
     @Published var showingGuard = true
     @Published var guardItemsGiven = false
+    @Published var showingBelongingsReveal = false
+    @Published var showingFormReveal = false
+    @Published var showingItemPopup: String? = nil  // asset name for clicked evidence
+
+    let guardDialogue: [String] = [
+        "You must be the investigator. I'm Jason Perry — I'll be escorting you through the facility.",
+        "An inmate named Wayne Michaels died last night. Officially, it was a heart attack. You're here to confirm that.",
+        "You can search two locations: his jail cell and the hospital room where he was found.",
+        "Look around carefully. Hover over anything that catches your eye and click to collect it as evidence.",
+        "Oh — before I forget. Here, take these. The victim's personal belongings and his prison intake form."
+    ]
 
     var investigationAreas: [InvestigationArea] {
         switch currentRoom {
@@ -29,14 +42,6 @@ class Act1ViewModel: ObservableObject {
 
     var gameState: GameState
 
-    let guardDialogue: [String] = [
-        "You must be the investigator. I'm Jason Perry — I'll be escorting you through the facility.",
-        "An inmate named Wayne Michaels died last night. Officially, it was a heart attack. You're here to confirm that.",
-        "Here are his personal belongings and his prison intake form. Standard procedure — you'll need these for reference.",
-        "You can search two locations: his jail cell and the hospital room where he was found. Look around carefully. Tap anything that catches your eye.",
-        "I'll be here if you need me. Good luck."
-    ]
-
     init(gameState: GameState) {
         self.gameState = gameState
         setupHospitalRoomAreas()
@@ -44,36 +49,48 @@ class Act1ViewModel: ObservableObject {
     }
 
     func advanceGuardDialogue() {
-        if guardDialogueIndex == 2 && !guardItemsGiven {
-            giveGuardItems()
-            guardItemsGiven = true
-        }
-
         if guardDialogueIndex < guardDialogue.count - 1 {
             guardDialogueIndex += 1
         } else {
-            showingGuard = false
+            // Last line — show the belongings pop-up
+            if !guardItemsGiven {
+                guardItemsGiven = true
+                showingGuard = false
+                showingBelongingsReveal = true
+            } else {
+                showingGuard = false
+            }
         }
     }
 
-    private func giveGuardItems() {
-        let license = Evidence(
-            name: "Wayne's License",
-            description: "Wayne's real license from his belongings bag. Organ Donor status clearly reads NO.",
-            actDiscovered: 1,
+    func dismissBelongingsReveal() {
+        showingBelongingsReveal = false
+        showingFormReveal = true
+
+        // Add belongings as sealed evidence
+        let belongings = Evidence(
+            name: "Wayne's Belongings",
+            description: "A sealed bag containing Wayne's personal items including his wallet and license. You'll need to examine this more closely later.",
+            actDiscovered: 2,
             isRealEvidence: true,
-            evidenceType: .document,
-            metadata: ["organ_donor": "NO", "document_type": "original license"]
+            evidenceType: .physical,
+            metadata: ["status": "sealed", "contents": "wallet, license, personal items"]
         )
+        gameState.addEvidence(belongings)
+    }
+
+    func dismissFormReveal() {
+        showingFormReveal = false
+
+        // Add intake form evidence
         let intakeForm = Evidence(
             name: "Prison Intake Form",
-            description: "Wayne's prison intake form. It includes a screenshot of his license showing Organ Donor status as YES.",
-            actDiscovered: 1,
+            description: "Wayne's prison intake form. You'll need to examine it more closely later.",
+            actDiscovered: 2,
             isRealEvidence: true,
             evidenceType: .document,
-            metadata: ["organ_donor": "YES", "detail": "license screenshot on file"]
+            metadata: ["status": "collected"]
         )
-        gameState.addEvidence(license)
         gameState.addEvidence(intakeForm)
     }
 
@@ -83,7 +100,7 @@ class Act1ViewModel: ObservableObject {
                 name: "Syringe",
                 description: "A syringe found near the hospital bed",
                 position: CGPoint(x: 300, y: 325),
-                size: CGSize(width: 60, height: 50),
+                size: CGSize(width: 80, height: 70),
                 imageName: "syringe",
                 evidence: Evidence(
                     name: "Syringe",
@@ -147,15 +164,21 @@ class Act1ViewModel: ObservableObject {
     }
     
     func searchArea(_ area: InvestigationArea) {
+        guard !gameState.isAreaSearched(area.name) else { return }
+
         // Mark area as searched
         gameState.markAreaAsSearched(area.name)
 
-        // Add evidence to inventory (no detail popup — just collect it)
+        // Add evidence to inventory
         if let evidence = area.evidence {
             gameState.addEvidence(evidence)
-            // Crumbled paper reveal is deferred to Act 3
-            if area.revealedImageName != nil && area.name != "Crumbled Paper" {
-                showingRevealedImage = area.revealedImageName
+
+            // Show pop-up of the item (like the guard items)
+            if let imageName = area.imageName {
+                // Crumbled paper reveal is deferred to Act 3
+                if area.name != "Crumbled Paper" {
+                    showingItemPopup = imageName
+                }
             }
         }
         
@@ -241,6 +264,7 @@ struct Act1SceneInvestigationView: View {
         .sheet(item: $viewModel.showingEvidenceDetail) { evidence in
             EvidenceDetailSheet(evidence: evidence)
         }
+        // Guard dialogue overlay
         .overlay(alignment: .bottomTrailing) {
             if viewModel.showingGuard {
                 GuardDialogueView(viewModel: viewModel)
@@ -248,39 +272,103 @@ struct Act1SceneInvestigationView: View {
                     .transition(.move(edge: .trailing))
             }
         }
+        // Belongings pop-up
         .overlay {
-            if let revealedImage = viewModel.showingRevealedImage {
-                ZStack {
-                    Color.black.opacity(0.7)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            viewModel.showingRevealedImage = nil
-                        }
-
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Button {
-                                viewModel.showingRevealedImage = nil
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title)
-                                    .foregroundColor(.white)
-                            }
-                            .buttonStyle(.plain)
-                            .padding()
-                        }
-
-                        Image(revealedImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 650, maxHeight: 550)
-                            .cornerRadius(12)
-                            .shadow(radius: 20)
-
-                        Spacer()
+            if viewModel.showingBelongingsReveal {
+                EvidencePopupOverlay(
+                    title: "Wayne's Personal Belongings",
+                    imageName: "waynesBelongings",
+                    subtitle: "Added to evidence.",
+                    buttonText: "Continue"
+                ) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.dismissBelongingsReveal()
                     }
                 }
+            }
+        }
+        // Form pop-up
+        .overlay {
+            if viewModel.showingFormReveal {
+                EvidencePopupOverlay(
+                    title: "Prison Intake Form",
+                    imageName: "waynesForm",
+                    subtitle: "Wayne's Belongings and Prison Intake Form added to evidence.",
+                    buttonText: "Continue"
+                ) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.dismissFormReveal()
+                    }
+                }
+            }
+        }
+        // Evidence item pop-up (when clicking items in the room)
+        .overlay {
+            if let itemImage = viewModel.showingItemPopup {
+                EvidencePopupOverlay(
+                    title: "Evidence Collected",
+                    imageName: itemImage,
+                    subtitle: "Added to evidence.",
+                    buttonText: "Got it"
+                ) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.showingItemPopup = nil
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Evidence Popup Overlay
+struct EvidencePopupOverlay: View {
+    let title: String
+    let imageName: String
+    var subtitle: String = ""
+    var buttonText: String = "Continue"
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.8)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                Text(title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+
+                Image(imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 500, maxHeight: 400)
+                    .cornerRadius(12)
+                    .shadow(radius: 20)
+
+                if !subtitle.isEmpty {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                    }
+                }
+
+                Button {
+                    onDismiss()
+                } label: {
+                    Text(buttonText)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -343,6 +431,7 @@ struct InvestigationAreaView: View {
                         .resizable()
                         .scaledToFit()
                         .brightness(isHovered && !isSearched ? 0.2 : 0)
+                        .allowsHitTesting(false)
 
                     if isHovered && !isSearched {
                         RoundedRectangle(cornerRadius: 8)
@@ -524,30 +613,17 @@ struct GuardDialogueView: View {
     @ObservedObject var viewModel: Act1ViewModel
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 12) {
-            // Dialogue bubble
-            VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .bottom, spacing: 16) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text("Jason Perry")
-                    .font(.caption)
+                    .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.white.opacity(0.7))
 
                 Text(viewModel.guardDialogue[viewModel.guardDialogueIndex])
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundColor(.white)
-                    .lineSpacing(4)
-
-                // Item notification
-                if viewModel.guardDialogueIndex == 2 && viewModel.guardItemsGiven {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Wayne's License and Prison Intake Form added to evidence.")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    }
-                    .padding(.top, 4)
-                }
+                    .lineSpacing(6)
 
                 HStack {
                     Spacer()
@@ -557,33 +633,32 @@ struct GuardDialogueView: View {
                         }
                     } label: {
                         Text(viewModel.guardDialogueIndex < viewModel.guardDialogue.count - 1 ? "Continue" : "Got it")
-                            .font(.caption)
+                            .font(.subheadline)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
                             .background(Color.white.opacity(0.2))
-                            .cornerRadius(6)
+                            .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(14)
-            .frame(maxWidth: 380)
+            .padding(18)
+            .frame(maxWidth: 480)
             .background(Color.black.opacity(0.85))
-            .cornerRadius(12)
+            .cornerRadius(14)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 14)
                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
 
-            // Guard portrait
             Image("prisonGuard")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 80, height: 80)
+                .frame(width: 130, height: 130)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 2))
         }
     }
 }

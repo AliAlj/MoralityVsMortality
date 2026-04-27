@@ -115,15 +115,15 @@ struct EvidenceConnection: Identifiable, Codable {
 
 // MARK: - 4-Act Structure
 enum GameAct: Int, CaseIterable {
-    case investigation = 1
-    case interrogation = 2
+    case interrogation = 1
+    case investigation = 2
     case analysis = 3
     case confrontation = 4
 
     var title: String {
         switch self {
-        case .investigation:  return "The Investigation"
         case .interrogation:  return "The Voices"
+        case .investigation:  return "The Investigation"
         case .analysis:       return "The Web"
         case .confrontation:  return "The Confrontation"
         }
@@ -131,8 +131,8 @@ enum GameAct: Int, CaseIterable {
 
     var subtitle: String {
         switch self {
-        case .investigation:  return "Search both scenes for evidence"
         case .interrogation:  return "Question the suspects"
+        case .investigation:  return "Search both scenes for evidence"
         case .analysis:       return "Examine evidence with tools"
         case .confrontation:  return "Face the truth"
         }
@@ -140,8 +140,8 @@ enum GameAct: Int, CaseIterable {
 
     var romanNumeral: String {
         switch self {
-        case .investigation:  return "I"
-        case .interrogation:  return "II"
+        case .interrogation:  return "I"
+        case .investigation:  return "II"
         case .analysis:       return "III"
         case .confrontation:  return "IV"
         }

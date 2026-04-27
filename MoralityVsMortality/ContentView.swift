@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var gameState: GameState
     @State private var showingActCard = true
-    @State private var lastAct: GameAct = .investigation
+    @State private var lastAct: GameAct = .interrogation
 
     var body: some View {
         ZStack {
@@ -14,8 +14,8 @@ struct ContentView: View {
 
                 Group {
                     switch gameState.currentAct {
-                    case .investigation:  Act1InvestigationView()
                     case .interrogation:  Act2InterrogationView()
+                    case .investigation:  Act1InvestigationView()
                     case .analysis:       Act3AnalysisView()
                     case .confrontation:  Act4ConfrontationView()
                     }
@@ -181,10 +181,10 @@ struct BottomNavigationView: View {
 
     private var progressHint: String {
         switch gameState.currentAct {
-        case .investigation:
-            return "Find \(max(0, 3 - gameState.realEvidenceCount)) more evidence pieces"
         case .interrogation:
             return "Unlock \(max(0, 2 - gameState.unlockedDialogue.count)) more dialogue branches"
+        case .investigation:
+            return "Find \(max(0, 3 - gameState.realEvidenceCount)) more evidence pieces"
         case .analysis:
             return "Complete analyses and make connections"
         case .confrontation:

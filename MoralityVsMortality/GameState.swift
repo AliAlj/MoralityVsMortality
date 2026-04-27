@@ -9,7 +9,7 @@ class GameState: ObservableObject {
     @Published var selectedDetective: String = UserDefaults.standard.string(forKey: "selectedDetective") ?? "detectiveOne"
 
     // MARK: - Published
-    @Published var currentAct: GameAct = .investigation
+    @Published var currentAct: GameAct = .interrogation
     @Published var collectedEvidence: [Evidence] = []
     @Published var suspects: [Suspect] = []
     @Published var unlockedDialogue: [DialogueNode] = []
@@ -30,8 +30,8 @@ class GameState: ObservableObject {
 
     var canProgressToNextAct: Bool {
         switch currentAct {
-        case .investigation:  return realEvidenceCount >= 3
         case .interrogation:  return unlockedDialogue.count >= 2
+        case .investigation:  return realEvidenceCount >= 3
         case .analysis:       return analysisResults.count >= 2 && correctConnectionsCount >= 2
         case .confrontation:  return false  // ends game
         }
@@ -123,7 +123,7 @@ class GameState: ObservableObject {
     }
 
     func resetGame() {
-        currentAct = .investigation
+        currentAct = .interrogation
         collectedEvidence.removeAll()
         searchedAreas.removeAll()
         unlockedDialogue.removeAll()
