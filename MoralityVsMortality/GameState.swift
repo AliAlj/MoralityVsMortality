@@ -14,10 +14,8 @@ class GameState: ObservableObject {
     @Published var unlockedDialogue: [DialogueNode] = []
     @Published var evidenceConnections: [EvidenceConnection] = []
     @Published var gameCompleted: Bool = false
-    @Published var caseScore: Int = 0
     // Act-specific
     @Published var searchedAreas: Set<String> = []
-    @Published var suspectCooperationLevel: Int = 5
     @Published var analysisResults: [String: String] = [:]
 
     // MARK: - Computed
@@ -61,17 +59,12 @@ class GameState: ObservableObject {
         unlockedDialogue.append(node)
     }
 
-    func updateSuspectCooperation(by change: Int) {
-        suspectCooperationLevel = max(1, min(10, suspectCooperationLevel + change))
-    }
-
     // MARK: - Analysis (Act 3)
     func performAnalysis(evidenceID: UUID, tool: AnalysisTool) -> String? {
         guard let evidence = getEvidence(by: evidenceID) else { return nil }
         let result = getAnalysisResult(evidence: evidence, tool: tool)
         guard !result.isEmpty else { return nil }
         analysisResults[evidenceID.uuidString] = result
-        calculateScore()
         return result
     }
 
@@ -83,7 +76,6 @@ class GameState: ObservableObject {
             EvidenceConnection(evidence1ID: evidence1ID, evidence2ID: evidence2ID,
                                connectionType: type, isCorrect: correct)
         )
-        calculateScore()
     }
 
     // MARK: - Progression
@@ -97,7 +89,6 @@ class GameState: ObservableObject {
     func jumpToAct(_ act: GameAct) { currentAct = act }
 
     func completeGame() {
-        calculateFinalScore()
         gameCompleted = true
     }
 
@@ -108,9 +99,7 @@ class GameState: ObservableObject {
         unlockedDialogue.removeAll()
         evidenceConnections.removeAll()
         analysisResults.removeAll()
-        suspectCooperationLevel = 5
         gameCompleted = false
-        caseScore = 0
     }
 
     // MARK: - Private
@@ -164,19 +153,5 @@ class GameState: ObservableObject {
             (c.0 == ev1.name && c.1 == ev2.name && c.2 == type) ||
             (c.0 == ev2.name && c.1 == ev1.name && c.2 == type)
         }
-    }
-
-    private func calculateScore() {
-        var score = 0
-        score += min(40, realEvidenceCount * 8)
-        score += min(30, correctConnectionsCount * 10)
-        score += min(20, suspectCooperationLevel * 2)
-        score += min(10, analysisResults.count * 2)
-        caseScore = score
-    }
-
-    private func calculateFinalScore() {
-        calculateScore()
-        caseScore = min(100, caseScore)
     }
 }

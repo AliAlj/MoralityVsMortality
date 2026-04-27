@@ -1,22 +1,22 @@
 import SwiftUI
 import Combine
 
-// MARK: - Act 1: Wrapper View
-struct Act1InvestigationView: View {
+// MARK: - Act 2: Wrapper View
+struct Act2InvestigationView: View {
     @EnvironmentObject var gameState: GameState
-    @StateObject private var viewModel = Act1ViewModel(gameState: GameState())
+    @StateObject private var viewModel = Act2ViewModel(gameState: GameState())
 
     var body: some View {
-        Act1SceneInvestigationView(viewModel: viewModel)
+        Act2SceneInvestigationView(viewModel: viewModel)
             .onAppear {
                 viewModel.setGameState(gameState)
             }
     }
 }
 
-// MARK: - Act 1: Scene Investigation View Model
+// MARK: - Act 2: Scene Investigation View Model
 @MainActor
-class Act1ViewModel: ObservableObject {
+class Act2ViewModel: ObservableObject {
     @Published var currentRoom: InvestigationRoom = .jailCell
     @Published var hospitalRoomAreas: [InvestigationArea] = []
     @Published var jailCellAreas: [InvestigationArea] = []
@@ -168,7 +168,7 @@ class Act1ViewModel: ObservableObject {
                 imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
-                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together. K'",
+                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together. — K'",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
@@ -203,9 +203,9 @@ class Act1ViewModel: ObservableObject {
     }
 }
 
-// MARK: - Act 1: Scene Investigation View
-struct Act1SceneInvestigationView: View {
-    @ObservedObject var viewModel: Act1ViewModel
+// MARK: - Act 2: Scene Investigation View
+struct Act2SceneInvestigationView: View {
+    @ObservedObject var viewModel: Act2ViewModel
 
     var body: some View {
         VStack {
@@ -543,7 +543,7 @@ struct EvidenceSummaryView: View {
 
 // MARK: - Prison Guard Dialogue
 struct GuardDialogueView: View {
-    @ObservedObject var viewModel: Act1ViewModel
+    @ObservedObject var viewModel: Act2ViewModel
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 16) {
@@ -597,7 +597,7 @@ struct GuardDialogueView: View {
 }
 
 #Preview {
-    Act1InvestigationView()
+    Act2InvestigationView()
         .environmentObject(GameState())
         .frame(width: 800, height: 600)
 }

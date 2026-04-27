@@ -14,8 +14,8 @@ struct ContentView: View {
 
                 Group {
                     switch gameState.currentAct {
-                    case .interrogation:  Act2InterrogationView()
-                    case .investigation:  Act1InvestigationView()
+                    case .interrogation:  Act1InterrogationView()
+                    case .investigation:  Act2InvestigationView()
                     case .analysis:       Act3AnalysisView()
                     case .confrontation:  Act4ConfrontationView()
                     }
@@ -124,7 +124,7 @@ struct HeaderView: View {
 
             Spacer()
 
-            Text("Evidence: \(gameState.realEvidenceCount)  ·  Score: \(gameState.caseScore)")
+            Text("Evidence: \(gameState.realEvidenceCount)")
                 .font(.caption).foregroundColor(.secondary)
 
             #if DEBUG

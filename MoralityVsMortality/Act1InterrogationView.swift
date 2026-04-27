@@ -1,10 +1,10 @@
 import SwiftUI
 import Combine
 
-// MARK: - Act 2: Wrapper View
-struct Act2InterrogationView: View {
+// MARK: - Act 1: Wrapper View
+struct Act1InterrogationView: View {
     var body: some View {
-        Act2InterrogationMainView()
+        Act1InterrogationMainView()
     }
 }
 
@@ -43,9 +43,9 @@ enum InterrogationStage: Int, CaseIterable {
     }
 }
 
-// MARK: - Act 2: View Model
+// MARK: - Act 1: View Model
 @MainActor
-class Act2ViewModel: ObservableObject {
+class Act1ViewModel: ObservableObject {
     @Published var currentStage: InterrogationStage = .kathy
     @Published var conversationHistory: [ConversationEntry] = []
     @Published var availableQuestions: [InterrogationQuestion] = []
@@ -123,8 +123,6 @@ class Act2ViewModel: ObservableObject {
             responses: [DialogueResponse(text: question.responseText, suspectReaction: "")]
         )
         gameState.unlockDialogueNode(node)
-        gameState.updateSuspectCooperation(by: question.cooperationChange)
-
         // Check if all questions for this stage are done
         if unaskedQuestions.isEmpty {
             stageComplete = true
@@ -150,33 +148,27 @@ class Act2ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "Why were you at the hospital at 2 AM?",
-                responseText: "I came back to grab something I forgot... I checked on my patient while I was there.",
-                cooperationChange: 0
+                responseText: "I came back to grab something I forgot... I checked on my patient while I was there."
             ),
             InterrogationQuestion(
                 questionText: "Why him specifically?",
-                responseText: "He had surgery in the morning. I didn't want anything to go wrong.",
-                cooperationChange: 0
+                responseText: "He had surgery in the morning. I didn't want anything to go wrong."
             ),
             InterrogationQuestion(
                 questionText: "What did you find when you checked on him?",
-                responseText: "He wasn't responding. I tried to wake him... nothing.",
-                cooperationChange: 0
+                responseText: "He wasn't responding. I tried to wake him... nothing."
             ),
             InterrogationQuestion(
                 questionText: "What did you do next?",
-                responseText: "I called Dr. Kazimir.",
-                cooperationChange: 0
+                responseText: "I called Dr. Kazimir."
             ),
             InterrogationQuestion(
                 questionText: "Why not call emergency response?",
-                responseText: "...I thought it was sedation-related. I didn't want to overreact.",
-                cooperationChange: -1
+                responseText: "...I thought it was sedation-related. I didn't want to overreact."
             ),
             InterrogationQuestion(
                 questionText: "And when the doctor arrived?",
-                responseText: "He examined him... and said he was gone.",
-                cooperationChange: 0
+                responseText: "He examined him... and said he was gone."
             )
         ]
     }
@@ -186,15 +178,13 @@ class Act2ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "Do you track who enters patient rooms?",
-                responseText: "Yes. Staff use badges. It's all logged in the system.",
-                cooperationChange: 1
+                responseText: "Yes. Staff use badges. It's all logged in the system."
             ),
             InterrogationQuestion(
                 questionText: "Can I access those logs?",
                 responseText: "I'm not supposed to... but if this is an official investigation, I can pull them up.",
                 unlocksEvidence: "Room Access Log",
-                evidenceDescription: "Digital access log showing Kathy Alvarez entered at 2:00 AM. Dr. Kazimir entered shortly after. Confirms the timeline.",
-                cooperationChange: 2
+                evidenceDescription: "Digital access log showing Kathy Alvarez entered at 2:00 AM. Dr. Kazimir entered shortly after. Confirms the timeline."
             )
         ]
     }
@@ -204,23 +194,19 @@ class Act2ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "What was the official cause of death?",
-                responseText: "That's what the report says. Heart attack.",
-                cooperationChange: 0
+                responseText: "That's what the report says. Heart attack."
             ),
             InterrogationQuestion(
                 questionText: "Do you agree with that assessment?",
-                responseText: "...It wasn't typical.",
-                cooperationChange: 0
+                responseText: "...It wasn't typical."
             ),
             InterrogationQuestion(
                 questionText: "Why not?",
-                responseText: "No trauma. No stress signs. Nothing that usually points to cardiac arrest.",
-                cooperationChange: 0
+                responseText: "No trauma. No stress signs. Nothing that usually points to cardiac arrest."
             ),
             InterrogationQuestion(
                 questionText: "Anything unusual about the body?",
-                responseText: "...Injection marks. More than expected for a routine pre-op.",
-                cooperationChange: -1
+                responseText: "...Injection marks. More than expected for a routine pre-op."
             )
         ]
     }
@@ -230,26 +216,22 @@ class Act2ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "You declared Wayne Michaels dead. Walk me through it.",
-                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 2:47 AM.",
-                cooperationChange: 0
+                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 2:47 AM."
             ),
             InterrogationQuestion(
                 questionText: "The sedation levels seem unusually high for a routine procedure.",
                 responseText: "I approved the sedation protocol. Every patient is different.",
-                requiredEvidence: ["Sedation Chart"],
-                cooperationChange: -1
+                requiredEvidence: ["Sedation Chart"]
             ),
             InterrogationQuestion(
                 questionText: "His vital monitor shows he still had a heartbeat at 2:00 AM.",
                 responseText: "You're misreading medical data. Residual electrical activity isn't the same as life.",
-                requiredEvidence: ["Vital Monitor Printout"],
-                cooperationChange: -1
+                requiredEvidence: ["Vital Monitor Printout"]
             ),
             InterrogationQuestion(
                 questionText: "His license says he's not an organ donor. But his intake form has a screenshot showing he is.",
                 responseText: "Records get updated. Patients change their minds. It happens.",
-                requiredEvidence: ["Wayne's License", "Prison Intake Form"],
-                cooperationChange: -2
+                requiredEvidence: ["Wayne's License", "Prison Intake Form"]
             )
         ]
     }
@@ -263,28 +245,26 @@ struct InterrogationQuestion: Identifiable {
     var requiredEvidence: [String]
     var unlocksEvidence: String?
     var evidenceDescription: String?
-    var cooperationChange: Int
 
     init(questionText: String, responseText: String,
          requiredEvidence: [String] = [], unlocksEvidence: String? = nil,
-         evidenceDescription: String? = nil, cooperationChange: Int = 0) {
+         evidenceDescription: String? = nil) {
         self.id = questionText
         self.questionText = questionText
         self.responseText = responseText
         self.requiredEvidence = requiredEvidence
         self.unlocksEvidence = unlocksEvidence
         self.evidenceDescription = evidenceDescription
-        self.cooperationChange = cooperationChange
     }
 }
 
-// MARK: - Act 2: Main View
-struct Act2InterrogationMainView: View {
+// MARK: - Act 1: Main View
+struct Act1InterrogationMainView: View {
     @EnvironmentObject private var gameState: GameState
-    @StateObject private var viewModel: Act2ViewModel
+    @StateObject private var viewModel: Act1ViewModel
 
     init() {
-        self._viewModel = StateObject(wrappedValue: Act2ViewModel(gameState: GameState()))
+        self._viewModel = StateObject(wrappedValue: Act1ViewModel(gameState: GameState()))
     }
 
     var body: some View {
@@ -476,6 +456,6 @@ struct ConversationBubbleView: View {
 }
 
 #Preview {
-    Act2InterrogationMainView()
+    Act1InterrogationMainView()
         .environmentObject(GameState())
 }
