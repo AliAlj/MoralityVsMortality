@@ -6,6 +6,7 @@ struct Act3AnalysisView: View {
     @EnvironmentObject private var gameState: GameState
     @State private var lightsOn = false
     @State private var showBoard = false
+    @State private var switchHovered = false
 
     var body: some View {
         ZStack {
@@ -31,8 +32,10 @@ struct Act3AnalysisView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(height: geo.size.height * 0.1)
+                            .brightness(switchHovered ? 0.15 : -0.3)
                     }
                     .buttonStyle(.plain)
+                    .onHover { hovering in switchHovered = hovering }
                     .position(
                         x: geo.size.width * 0.05,
                         y: geo.size.height * 0.35
@@ -416,12 +419,7 @@ struct OfficeBulletinButton: View {
                 .resizable()
                 .scaledToFit()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .brightness(isHovered ? 0.15 : 0)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.white.opacity(isHovered ? 0.6 : 0), lineWidth: 2)
-                        .shadow(color: .white.opacity(isHovered ? 0.4 : 0), radius: 8)
-                )
+                .brightness(isHovered ? 0.15 : -0.3)
         }
         .offset(x: -25, y: -100)
         .buttonStyle(.plain)
