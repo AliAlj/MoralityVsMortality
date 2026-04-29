@@ -107,7 +107,12 @@ struct CaseBoardView: View {
     @State private var selectedTool: AnalysisTool? = nil
     @State private var analysisResult: String = ""
     @State private var completedAnalyses: [AnalysisResult] = []
-    @State private var showingLoveLetter = false
+    @State private var magnifyingEvidence: Evidence? = nil
+    @State private var belongingsStep: BelongingsStep? = nil
+
+    enum BelongingsStep {
+        case bag, wallet, license
+    }
 
     var body: some View {
         ZStack {
@@ -131,22 +136,20 @@ struct CaseBoardView: View {
                             .tracking(2)
                             .padding(.top, 8)
 
-                        ForEach(gameState.collectedEvidence.filter(\.isRealEvidence)) { evidence in
+                        ForEach(displayedEvidence) { evidence in
                             EvidenceBoardItem(
                                 evidence: evidence,
                                 isSelected: selectedEvidence.contains(where: { $0.id == evidence.id }),
                                 onTap: {
                                     toggleEvidence(evidence)
                                 },
-                                onReveal: evidence.name == "Love Letter" ? {
-                                    showingLoveLetter = true
-                                } : nil
+                                onReveal: evidenceRevealAction(for: evidence)
                             )
                         }
                     }
                     .padding(10)
                 }
-                .frame(width: 180)
+                .frame(width: 210)
                 .background(Color.black.opacity(0.5))
 
                 // Center: Results area
@@ -293,41 +296,72 @@ struct CaseBoardView: View {
                 .background(Color.black.opacity(0.5))
             }
 
-            // Love letter overlay
-            if showingLoveLetter {
+            // Magnify overlay
+            if let evidence = magnifyingEvidence,
+               let imageName = evidenceImageMap[evidence.name] {
+                MagnifyOverlay(evidenceName: evidence.name, imageName: imageName) {
+                    magnifyingEvidence = nil
+                }
+            }
+
+            // Belongings opening sequence
+            if let step = belongingsStep {
                 ZStack {
-                    Color.black.opacity(0.7)
+                    Color.black.opacity(0.85)
                         .ignoresSafeArea()
-                        .onTapGesture {
-                            showingLoveLetter = false
-                        }
+                        .onTapGesture { advanceBelongingsStep() }
 
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Button {
-                                showingLoveLetter = false
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title)
-                                    .foregroundColor(.white)
-                            }
-                            .buttonStyle(.plain)
-                            .padding()
-                        }
+                    VStack(spacing: 16) {
+                        Text(belongingsTitle(for: step))
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
 
-                        Image("loveLetter")
+                        Image(belongingsImage(for: step))
                             .resizable()
+                            .interpolation(.medium)
                             .scaledToFit()
-                            .frame(maxWidth: 650, maxHeight: 550)
+                            .frame(maxWidth: 500, maxHeight: 400)
                             .cornerRadius(12)
                             .shadow(radius: 20)
 
-                        Spacer()
+                        if step == .license {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Wayne's License added to evidence.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.green)
+                            }
+                        }
+
+                        Text("Click anywhere to continue")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.5))
                     }
+                    .onTapGesture { advanceBelongingsStep() }
                 }
             }
         }
+    }
+
+    // Hide Wayne's Belongings once license is extracted; show Wayne's License instead
+    private var displayedEvidence: [Evidence] {
+        let hasLicense = gameState.hasEvidence(named: "Wayne's License")
+        return gameState.collectedEvidence.filter(\.isRealEvidence).filter { evidence in
+            if evidence.name == "Wayne's Belongings" && hasLicense { return false }
+            return true
+        }
+    }
+
+    private func evidenceRevealAction(for evidence: Evidence) -> (() -> Void)? {
+        if evidence.name == "Wayne's Belongings" && !gameState.hasEvidence(named: "Wayne's License") {
+            return { belongingsStep = .bag }
+        }
+        if evidenceImageMap[evidence.name] != nil {
+            return { magnifyingEvidence = evidence }
+        }
+        return nil
     }
 
     private func toggleEvidence(_ evidence: Evidence) {
@@ -344,6 +378,13 @@ struct CaseBoardView: View {
     private func performAnalysis() {
         guard !selectedEvidence.isEmpty,
               let tool = selectedTool else { return }
+
+        // Magnify tool opens zoom view instead of analyzing
+        if tool == .magnify {
+            magnifyingEvidence = selectedEvidence.first
+            selectedEvidence.removeAll()
+            return
+        }
 
         // Capture selection before any state changes
         let selected = selectedEvidence
@@ -366,6 +407,45 @@ struct CaseBoardView: View {
             analysisResult = "This doesn't reveal anything with this tool. Try a different combination."
         }
     }
+
+    private func belongingsTitle(for step: BelongingsStep) -> String {
+        switch step {
+        case .bag: return "Wayne's Personal Belongings"
+        case .wallet: return "Wayne's Wallet"
+        case .license: return "Wayne's License"
+        }
+    }
+
+    private func belongingsImage(for step: BelongingsStep) -> String {
+        switch step {
+        case .bag: return "waynesBelongings"
+        case .wallet: return "waynesWallet"
+        case .license: return "waynesLicense"
+        }
+    }
+
+    private func advanceBelongingsStep() {
+        switch belongingsStep {
+        case .bag:
+            belongingsStep = .wallet
+        case .wallet:
+            belongingsStep = .license
+        case .license:
+            belongingsStep = nil
+            // Add Wayne's License as new evidence
+            let license = Evidence(
+                name: "Wayne's License",
+                description: "Wayne's driver license. Organ donor field clearly reads NO.",
+                actDiscovered: 3,
+                isRealEvidence: true,
+                evidenceType: .document,
+                metadata: ["organ_donor": "NO"]
+            )
+            gameState.addEvidence(license)
+        case nil:
+            break
+        }
+    }
 }
 
 // MARK: - Evidence Board Item
@@ -376,25 +456,40 @@ struct EvidenceBoardItem: View {
     var onReveal: (() -> Void)?
     @State private var isHovered = false
 
+    private var thumbnailName: String? { evidenceImageMap[evidence.name] }
+
     var body: some View {
         HStack(spacing: 6) {
             Button(action: onTap) {
-                HStack {
-                    Text(evidence.name)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .lineLimit(2)
+                VStack(spacing: 4) {
+                    // Thumbnail
+                    if let imageName = thumbnailName {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 140, height: 50)
+                            .clipped()
+                            .cornerRadius(4)
+                            .opacity(isHovered ? 1.0 : 0.8)
+                    }
 
-                    Spacer()
+                    HStack {
+                        Text(evidence.name)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(1)
 
-                    if isSelected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.caption)
+                        Spacer()
+
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.blue)
+                                .font(.caption)
+                        }
                     }
                 }
-                .padding(8)
+                .padding(6)
                 .background(isSelected ? Color.blue.opacity(0.3) : Color.white.opacity(isHovered ? 0.2 : 0.1))
                 .cornerRadius(6)
                 .overlay(
@@ -405,10 +500,10 @@ struct EvidenceBoardItem: View {
             .buttonStyle(.plain)
             .onHover { isHovered = $0 }
 
-            // Reveal button for love letter
+            // View button for evidence with images
             if let onReveal = onReveal {
                 Button(action: onReveal) {
-                    Image(systemName: "eye.fill")
+                    Image(systemName: "magnifyingglass")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.7))
                         .padding(6)
@@ -426,6 +521,141 @@ struct AnalysisResult: Identifiable {
     let id = UUID()
     let evidence: Evidence
     let tool: AnalysisTool
+}
+
+// MARK: - Magnify Overlay
+struct MagnifyOverlay: View {
+    let evidenceName: String
+    let imageName: String
+    let onDismiss: () -> Void
+
+    @State private var scale: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+    @State private var lastOffset: CGSize = .zero
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.85)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text(evidenceName)
+                        .font(.headline)
+                        .foregroundColor(.white)
+
+                    Spacer()
+
+                    // Zoom controls
+                    HStack(spacing: 12) {
+                        Button {
+                            withAnimation { scale = max(0.5, scale - 0.25) }
+                        } label: {
+                            Image(systemName: "minus.magnifyingglass")
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(.plain)
+
+                        Text("\(Int(scale * 100))%")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
+                            .frame(width: 40)
+
+                        Button {
+                            withAnimation { scale = min(4.0, scale + 0.25) }
+                        } label: {
+                            Image(systemName: "plus.magnifyingglass")
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            withAnimation {
+                                scale = 1.0
+                                offset = .zero
+                                lastOffset = .zero
+                            }
+                        } label: {
+                            Text("Reset")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Spacer()
+
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding()
+                .background(Color.black.opacity(0.5))
+
+                // Zoomable image
+                GeometryReader { geo in
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .scaleEffect(scale)
+                        .offset(offset)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    offset = CGSize(
+                                        width: lastOffset.width + value.translation.width,
+                                        height: lastOffset.height + value.translation.height
+                                    )
+                                }
+                                .onEnded { _ in
+                                    lastOffset = offset
+                                }
+                        )
+                        .onScrollGesture { delta in
+                            let newScale = scale + delta * 0.01
+                            scale = max(0.5, min(4.0, newScale))
+                        }
+                }
+            }
+        }
+    }
+}
+
+// Scroll gesture for zoom on macOS
+extension View {
+    func onScrollGesture(action: @escaping (CGFloat) -> Void) -> some View {
+        self.background(
+            ScrollDetector(action: action)
+        )
+    }
+}
+
+struct ScrollDetector: NSViewRepresentable {
+    let action: (CGFloat) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = ScrollDetectorView()
+        view.action = action
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        (nsView as? ScrollDetectorView)?.action = action
+    }
+}
+
+class ScrollDetectorView: NSView {
+    var action: ((CGFloat) -> Void)?
+
+    override func scrollWheel(with event: NSEvent) {
+        action?(event.deltaY)
+    }
 }
 
 // MARK: - Office Bulletin Button

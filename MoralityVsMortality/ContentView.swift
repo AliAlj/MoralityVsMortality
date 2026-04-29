@@ -167,13 +167,19 @@ struct BottomNavigationView: View {
 
             Spacer()
 
-            if gameState.canProgressToNextAct {
-                Button("Continue →") { gameState.progressToNextAct() }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-            } else if !gameState.gameCompleted {
-                Text(progressHint)
-                    .font(.caption).foregroundColor(.secondary)
+            if !gameState.gameCompleted {
+                ZStack(alignment: .trailing) {
+                    Text(progressHint)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .opacity(gameState.canProgressToNextAct ? 0 : 1)
+
+                    Button("Continue →") { gameState.progressToNextAct() }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .opacity(gameState.canProgressToNextAct ? 1 : 0)
+                        .disabled(!gameState.canProgressToNextAct)
+                }
             }
         }
         .padding()

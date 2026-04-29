@@ -184,7 +184,7 @@ class Act1ViewModel: ObservableObject {
                 questionText: "Can I access those logs?",
                 responseText: "I'm not supposed to... but if this is an official investigation, I can pull them up.",
                 unlocksEvidence: "Room Access Log",
-                evidenceDescription: "Digital access log showing Kathy Alvarez entered at 2:00 AM. Dr. Kazimir entered shortly after. Confirms the timeline."
+                evidenceDescription: "Digital access log showing Kathy Alvarez entered at 3:00 AM. Dr. Kazimir entered shortly after. Confirms the timeline."
             )
         ]
     }
@@ -216,7 +216,7 @@ class Act1ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "You declared Wayne Michaels dead. Walk me through it.",
-                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 2:47 AM."
+                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 3:10 AM."
             ),
             InterrogationQuestion(
                 questionText: "The sedation levels seem unusually high for a routine procedure.",
@@ -224,7 +224,7 @@ class Act1ViewModel: ObservableObject {
                 requiredEvidence: ["Sedation Chart"]
             ),
             InterrogationQuestion(
-                questionText: "His vital monitor shows he still had a heartbeat at 2:00 AM.",
+                questionText: "His vital monitor shows he still had a heartbeat at 3:00 AM.",
                 responseText: "You're misreading medical data. Residual electrical activity isn't the same as life.",
                 requiredEvidence: ["Vital Monitor Printout"]
             ),

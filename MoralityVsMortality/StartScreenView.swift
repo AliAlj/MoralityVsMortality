@@ -5,6 +5,8 @@ struct StartScreenView: View {
     @AppStorage("hasSeenIntro") private var hasSeenIntro = false
     @AppStorage("playerName") private var savedName = ""
     @Binding var screen: AppScreen
+    @State private var showNewGameConfirm = false
+    private let buttonYOffset: CGFloat = 50
 
     private var hasCompletedSetup: Bool {
         hasSeenIntro && !savedName.isEmpty
@@ -17,24 +19,99 @@ struct StartScreenView: View {
                 .scaledToFill()
                 .ignoresSafeArea()
 
-            VStack {
+            VStack(spacing: 16) {
                 Spacer()
 
+                // Start / New Game button (always shown, on top)
                 Button {
                     if hasCompletedSetup {
-                        screen = .game
+                        showNewGameConfirm = true
                     } else {
                         screen = .intro
                     }
                 } label: {
-                    Image(hasCompletedSetup ? "continueButton" : "startButton")
+                    Image("startButton")
                         .resizable()
                         .scaledToFit()
                         .frame(height: 100)
                 }
                 .buttonStyle(.plain)
 
+                // Continue button (only if save exists)
+                if hasCompletedSetup {
+                    Button {
+                        screen = .game
+                    } label: {
+                        Image("continueButton")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 100)
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 Spacer()
+            }
+            .offset(y: buttonYOffset)
+
+            // New game confirmation dialog
+            if showNewGameConfirm {
+                ZStack {
+                    Color.black.opacity(0.7)
+                        .ignoresSafeArea()
+                        .onTapGesture { showNewGameConfirm = false }
+
+                    VStack(spacing: 20) {
+                        Text("START NEW GAME?")
+                            .font(.custom("Times New Roman", size: 24))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .tracking(4)
+
+                        Text("This will erase your current progress.")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.7))
+
+                        HStack(spacing: 30) {
+                            Button {
+                                showNewGameConfirm = false
+                            } label: {
+                                Text("Cancel")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 30)
+                                    .padding(.vertical, 10)
+                                    .background(Color.white.opacity(0.15))
+                                    .cornerRadius(8)
+                            }
+                            .buttonStyle(.plain)
+
+                            Button {
+                                showNewGameConfirm = false
+                                UserDefaults.standard.removeObject(forKey: "playerName")
+                                UserDefaults.standard.removeObject(forKey: "selectedDetective")
+                                UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
+                                screen = .intro
+                            } label: {
+                                Text("New Game")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 30)
+                                    .padding(.vertical, 10)
+                                    .background(Color.red.opacity(0.6))
+                                    .cornerRadius(8)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(40)
+                    .background(Color.black.opacity(0.9))
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+                }
             }
         }
     }
@@ -52,7 +129,7 @@ struct IntroScreenView: View {
     @State private var typingTask: Task<Void, Never>?
 
     private let pages: [String] = [
-        "2:00 AM, Tuesday, October 5th\n\nA sharp gasp cuts through the hospital corridor.\n\nWayne Michaels is found unresponsive.\n\nMinutes later, he is pronounced dead.",
+        "3:00 AM, Monday, March 9th\n\nA sharp gasp cuts through the hospital corridor.\n\nWayne Michaels is found unresponsive.\n\nMinutes later, he is pronounced dead.",
 
         "Wayne was a prison inmate serving a life sentence for attempted murder.\n\nOne week ago, he was transferred to the prison hospital following a violent altercation.\n\nHis condition was stable.\nHe was scheduled for a routine surgical procedure in the morning.",
 
@@ -284,3 +361,26 @@ enum AppScreen {
     case characterSelect
     case game
 }
+#Preview("Start Button") {
+    StartScreenPreviewHost(hasSeenIntro: false, playerName: "")
+        .frame(width: 1100, height: 750)
+}
+
+#Preview("Start And Continue") {
+    StartScreenPreviewHost(hasSeenIntro: true, playerName: "Detective")
+        .frame(width: 1100, height: 750)
+}
+
+private struct StartScreenPreviewHost: View {
+    @State private var screen: AppScreen = .start
+
+    init(hasSeenIntro: Bool, playerName: String) {
+        UserDefaults.standard.set(hasSeenIntro, forKey: "hasSeenIntro")
+        UserDefaults.standard.set(playerName, forKey: "playerName")
+    }
+
+    var body: some View {
+        StartScreenView(screen: $screen)
+    }
+}
+

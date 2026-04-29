@@ -114,11 +114,11 @@ class GameState: ObservableObject {
             ],
             // Timeline Tool results
             "Room Access Log": [
-                .timeline: "Kathy Alvarez badged in at 2:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time.",
+                .timeline: "Kathy Alvarez badged in at 3:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time.",
                 .contextLink: "Cross referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
             ],
             "Vital Monitor Printout": [
-                .timeline: "Heart rate and oxygen levels were present at 2:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
+                .timeline: "Heart rate and oxygen levels were present at 3:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
             ],
             // Medical Analysis Tool results
             "Syringe": [
@@ -129,7 +129,7 @@ class GameState: ObservableObject {
             ],
             // Context Link Tool results
             "Love Letter": [
-                .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 2:00 AM. This was personal, not protocol."
+                .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 3:00 AM. This was personal, not protocol."
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""

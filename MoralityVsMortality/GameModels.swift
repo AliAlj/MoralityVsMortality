@@ -133,6 +133,7 @@ enum AnalysisTool: String, CaseIterable {
     case timeline    = "Timeline"
     case medical     = "Medical Analysis"
     case contextLink = "Context Link"
+    case magnify     = "Magnify"
 
     var description: String {
         switch self {
@@ -140,6 +141,7 @@ enum AnalysisTool: String, CaseIterable {
         case .timeline:    return "Reconstruct the sequence of events"
         case .medical:     return "Analyze medical data and substances"
         case .contextLink: return "Link evidence to reveal hidden connections"
+        case .magnify:     return "Zoom in on evidence to examine details"
         }
     }
 
@@ -149,9 +151,22 @@ enum AnalysisTool: String, CaseIterable {
         case .timeline:    return "clock.arrow.circlepath"
         case .medical:     return "cross.vial"
         case .contextLink: return "link"
+        case .magnify:     return "magnifyingglass"
         }
     }
 }
+
+// MARK: - Evidence Image Mapping
+let evidenceImageMap: [String: String] = [
+    "Syringe": "syringe",
+    "Sedation Chart": "sedationChart",
+    "Vital Monitor Printout": "vitalMonitor",
+    "Love Letter": "loveLetter",
+    "Wayne's Belongings": "waynesBelongings",
+    "Prison Intake Form": "waynesForm",
+    "Room Access Log": "roomAccessLog",
+    "Wayne's License": "waynesLicense"
+]
 
 // MARK: - Conversation
 struct ConversationEntry: Identifiable {

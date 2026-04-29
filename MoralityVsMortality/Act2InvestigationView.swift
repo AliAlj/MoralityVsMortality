@@ -26,7 +26,7 @@ class Act2InvestigationViewModel: ObservableObject {
 
     let guardDialogue: [String] = [
         "You must be the investigator. I'm Jason Perry. I'll be escorting you through the facility.",
-        "An inmate named Wayne Michaels died last night. Officially, it was a heart attack. You're here to confirm that.",
+        "An inmate named Wayne Michaels died earlier this morning. Officially, it was a heart attack. You're here to confirm that.",
         "You can search two locations: his jail cell and the hospital room where he was found.",
         "Look around carefully. Hover over anything that catches your eye and click to collect it as evidence.",
         "Oh, before I forget. Here, take these. The victim's personal belongings and his prison intake form."
@@ -65,8 +65,11 @@ class Act2InvestigationViewModel: ObservableObject {
         // Evidence deferred until all guard popups are done
     }
 
-    func dismissFormReveal(in gameState: GameState) {
+    func dismissFormReveal() {
         showingFormReveal = false
+    }
+
+    func commitGuardEvidence(in gameState: GameState) {
         let belongings = Evidence(
             name: "Wayne's Belongings",
             description: "A sealed bag containing Wayne's personal items including his wallet and license. You'll need to examine this more closely later.",
@@ -126,11 +129,11 @@ class Act2InvestigationViewModel: ObservableObject {
                 imageName: "vitalMonitor",
                 evidence: Evidence(
                     name: "Vital Monitor Printout",
-                    description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 2:00 AM. He was alive when found.",
+                    description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 3:00 AM. He was alive when found.",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .physical,
-                    metadata: ["time": "2:00 AM", "status": "vitals present", "implication": "alive when found"]
+                    metadata: ["time": "3:00 AM", "status": "vitals present", "implication": "alive when found"]
                 )
             )
         ]
@@ -159,10 +162,14 @@ class Act2InvestigationViewModel: ObservableObject {
     func searchArea(_ area: InvestigationArea, in gameState: GameState) {
         guard !gameState.isAreaSearched(area.name) else { return }
 
-        if let evidence = area.evidence {
-            gameState.collectEvidenceFromArea(evidence, areaName: area.name)
-        } else {
-            gameState.markAreaAsSearched(area.name)
+        Task { @MainActor in
+            await Task.yield()
+
+            if let evidence = area.evidence {
+                gameState.collectEvidenceFromArea(evidence, areaName: area.name)
+            } else {
+                gameState.markAreaAsSearched(area.name)
+            }
         }
     }
 }
@@ -254,8 +261,11 @@ struct Act2SceneInvestigationView: View {
                     subtitle: "Wayne's Belongings and Prison Intake Form added to evidence.",
                     buttonText: "Continue"
                 ) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.dismissFormReveal(in: gameState)
+                    viewModel.dismissFormReveal()
+
+                    Task { @MainActor in
+                        await Task.yield()
+                        viewModel.commitGuardEvidence(in: gameState)
                     }
                 }
             }
