@@ -133,7 +133,7 @@ struct IntroScreenView: View {
 
         "Wayne was a prison inmate serving a life sentence for attempted murder.\n\nOne week ago, he was transferred to the prison hospital following a violent altercation.\n\nHis condition was stable.\nHe was scheduled for a routine surgical procedure in the morning.",
 
-        "The attending surgeon: Dr. Viktor Kazimir\nThe nurse on duty: Kathy Alvarez\n\nAccording to the official report,\nWayne suffered a sudden heart attack.\n\nCase closed.",
+        "The attending surgeon: Dr. Viktor Kazimir\nThe nurse on duty: Kathy Alvarez\n\nAccording to the official report,\nWayne suffered sudden cardiac arrest.\n\nCase closed.",
 
         "But something doesn't add up.\n\nYou've been hired to find out what really happened."
     ]
@@ -383,4 +383,3 @@ private struct StartScreenPreviewHost: View {
         StartScreenView(screen: $screen)
     }
 }
-

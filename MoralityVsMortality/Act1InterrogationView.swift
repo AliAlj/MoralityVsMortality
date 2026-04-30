@@ -24,11 +24,20 @@ enum InterrogationStage: Int, CaseIterable {
         }
     }
 
+    var jobTitle: String {
+        switch self {
+        case .kathy: return "Nurse"
+        case .receptionist: return "Receptionist"
+        case .morgueWorker: return "Morgue Technician"
+        case .surgeon: return "Attending Surgeon"
+        }
+    }
+
     var portraitImage: String {
         switch self {
         case .kathy: return "prisonNurse"
-        case .receptionist: return "prisonReceptionist"
-        case .morgueWorker: return "prisonMorgueWorker"
+        case .receptionist: return "hospitalReceptionist"
+        case .morgueWorker: return "morgueTechnician"
         case .surgeon: return "prisonSurgeon"
         }
     }
@@ -193,7 +202,7 @@ class Act1ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "What was the official cause of death?",
-                responseText: "That's what the report says. Heart attack."
+                responseText: "That's what the report says. Cardiac arrest."
             ),
             InterrogationQuestion(
                 questionText: "Do you agree with that assessment?",
@@ -264,123 +273,135 @@ struct Act1InterrogationMainView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Progress bar showing interrogation order
-            HStack(spacing: 0) {
-                ForEach(InterrogationStage.allCases, id: \.rawValue) { stage in
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(stageColor(stage))
-                            .frame(width: 10, height: 10)
-                        Text(stage.suspectName)
-                            .font(.caption2)
-                            .foregroundColor(stage == viewModel.currentStage ? .primary : .secondary)
-                            .fontWeight(stage == viewModel.currentStage ? .bold : .regular)
-                    }
-                    .padding(.horizontal, 8)
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
 
-                    if stage.rawValue < InterrogationStage.allCases.count - 1 {
-                        Rectangle()
-                            .fill(viewModel.completedStages.contains(stage.rawValue) ? Color.green : Color.gray.opacity(0.3))
-                            .frame(height: 2)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 10)
-            .background(Color.gray.opacity(0.05))
+            VStack(spacing: 0) {
+                // Progress bar showing interrogation order
+                HStack(spacing: 0) {
+                    ForEach(InterrogationStage.allCases, id: \.rawValue) { stage in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(stageColor(stage))
+                                .frame(width: 10, height: 10)
+                            Text(stage.suspectName)
+                                .font(.caption2)
+                                .foregroundColor(stage == viewModel.currentStage ? .white : .white.opacity(0.6))
+                                .fontWeight(stage == viewModel.currentStage ? .bold : .regular)
+                        }
+                        .padding(.horizontal, 8)
 
-            Divider()
-
-            // Header with current suspect
-            HStack {
-                Image(viewModel.currentStage.portraitImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 50, height: 50)
-                    .clipShape(Circle())
-
-                VStack(alignment: .leading) {
-                    Text(viewModel.currentStage.suspectName)
-                        .font(.headline)
-                    Text("Interrogation \(viewModel.currentStage.rawValue + 1) of 4")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-            }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-
-            // Conversation
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(viewModel.conversationHistory) { entry in
-                            ConversationBubbleView(
-                                entry: entry,
-                                playerImage: gameState.selectedDetective,
-                                suspectImage: viewModel.currentStage.portraitImage,
-                                suspectName: viewModel.currentStage.suspectName,
-                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
-                            )
-                            .id(entry.id)
+                        if stage.rawValue < InterrogationStage.allCases.count - 1 {
+                            Rectangle()
+                                .fill(viewModel.completedStages.contains(stage.rawValue) ? Color.green : Color.white.opacity(0.2))
+                                .frame(height: 2)
                         }
                     }
-                    .padding()
                 }
-                .onChange(of: viewModel.conversationHistory.count) { _ in
-                    if let last = viewModel.conversationHistory.last {
-                        withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
-                    }
-                }
-            }
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .background(Color.white.opacity(0.06))
 
-            Divider()
+                Divider()
+                    .overlay(Color.white.opacity(0.12))
 
-            // Sequential question or next button
-            VStack(spacing: 8) {
-                if viewModel.stageComplete {
-                    if viewModel.isLastStage {
-                        Text("Interrogations complete.")
+                // Header with current suspect
+                HStack {
+                    Image(viewModel.currentStage.portraitImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 50)
+                        .clipShape(Circle())
+
+                    VStack(alignment: .leading) {
+                        Text(viewModel.currentStage.suspectName)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text(viewModel.currentStage.jobTitle)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .padding()
-                    } else {
-                        Button {
-                            viewModel.advanceToNextStage()
-                        } label: {
-                            HStack {
-                                Text("Next: \(InterrogationStage(rawValue: viewModel.currentStage.rawValue + 1)?.suspectName ?? "")")
-                                Image(systemName: "arrow.right")
+                            .foregroundColor(.white.opacity(0.75))
+                        Text("Interrogation \(viewModel.currentStage.rawValue + 1) of 4")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.65))
+                    }
+
+                    Spacer()
+                }
+                .padding()
+                .background(Color.white.opacity(0.06))
+
+                // Conversation
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(viewModel.conversationHistory) { entry in
+                                ConversationBubbleView(
+                                    entry: entry,
+                                    playerImage: gameState.selectedDetective,
+                                    suspectImage: viewModel.currentStage.portraitImage,
+                                    suspectName: viewModel.currentStage.suspectName,
+                                    playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
+                                )
+                                .id(entry.id)
                             }
                         }
-                        .buttonStyle(.borderedProminent)
                         .padding()
                     }
-                } else if let question = viewModel.currentQuestion {
-                    Button {
-                        viewModel.askCurrentQuestion()
-                    } label: {
-                        Text(question.questionText)
-                            .font(.caption)
-                            .foregroundColor(.primary)
-                            .padding(10)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(8)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                            )
+                    .background(Color.black)
+                    .onChange(of: viewModel.conversationHistory.count) { _ in
+                        if let last = viewModel.conversationHistory.last {
+                            withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
                 }
+
+                Divider()
+                    .overlay(Color.white.opacity(0.12))
+
+                // Sequential question or next button
+                VStack(spacing: 8) {
+                    if viewModel.stageComplete {
+                        if viewModel.isLastStage {
+                            Text("Interrogations complete.")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding()
+                        } else {
+                            Button {
+                                viewModel.advanceToNextStage()
+                            } label: {
+                                HStack {
+                                    Text("Next: \(InterrogationStage(rawValue: viewModel.currentStage.rawValue + 1)?.suspectName ?? "")")
+                                    Image(systemName: "arrow.right")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .padding()
+                        }
+                    } else if let question = viewModel.currentQuestion {
+                        Button {
+                            viewModel.askCurrentQuestion()
+                        } label: {
+                            Text(question.questionText)
+                                .font(.body)
+                                .foregroundColor(.white)
+                                .padding(14)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.white.opacity(0.08))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                    }
+                }
+                .background(Color.white.opacity(0.06))
             }
-            .background(Color.gray.opacity(0.05))
         }
         .onAppear {
             viewModel.setGameState(gameState)
@@ -409,23 +430,25 @@ struct ConversationBubbleView: View {
     private var isPlayer: Bool { entry.speaker == .investigator }
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .top, spacing: 10) {
             if isPlayer {
                 Spacer(minLength: 50)
             } else {
                 portraitView(suspectImage)
             }
 
-            VStack(alignment: isPlayer ? .trailing : .leading) {
-                Text(entry.text)
-                    .padding()
-                    .background(isPlayer ? Color.blue.opacity(0.7) : Color.gray.opacity(0.3))
-                    .cornerRadius(12)
-                    .foregroundColor(isPlayer ? .white : .primary)
-
+            VStack(alignment: isPlayer ? .trailing : .leading, spacing: 4) {
                 Text(isPlayer ? playerName : suspectName)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white.opacity(0.7))
+
+                Text(entry.text)
+                    .font(.title3)
+                    .padding(14)
+                    .background(isPlayer ? Color.purple.opacity(0.8) : Color.cyan.opacity(0.4))
+                    .cornerRadius(12)
+                    .foregroundColor(.white)
             }
 
             if isPlayer {

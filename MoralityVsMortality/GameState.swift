@@ -3,6 +3,7 @@ import Combine
 
 @MainActor
 class GameState: ObservableObject {
+    private let totalInvestigationEvidenceCount = 6
 
     // MARK: - Player (persisted via AppStorage in views, synced here)
     @Published var playerName: String = UserDefaults.standard.string(forKey: "playerName") ?? ""
@@ -25,7 +26,7 @@ class GameState: ObservableObject {
     var canProgressToNextAct: Bool {
         switch currentAct {
         case .interrogation:  return unlockedDialogue.count >= 2
-        case .investigation:  return realEvidenceCount >= 6
+        case .investigation:  return realEvidenceCount >= totalInvestigationEvidenceCount
         case .analysis:       return analysisResults.count >= 3
         case .confrontation:  return false  // ends game
         }
@@ -130,7 +131,7 @@ class GameState: ObservableObject {
             ],
             // Context Link Tool results
             "Love Letter": [
-                .contextLink: "Written by Kathy Williams. She visited Wayne intentionally at 3:00 AM. This was personal, not protocol."
+                .contextLink: "Written by Wayne to Kathy Williams. Confirms a personal relationship between them. Explains why she visited him at 3:00 AM — this was personal, not protocol."
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""

@@ -232,23 +232,37 @@ struct CaseBoardView: View {
                     Spacer()
 
                     // Progress
-                    HStack {
-                        Text("Analyses: \(gameState.analysisResults.count)")
-                        if gameState.analysisResults.count >= 3 {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Ready to continue")
-                                .foregroundColor(.green)
-                        } else {
-                            Text("Need \(max(0, 3 - gameState.analysisResults.count)) more")
-                                .foregroundColor(.orange)
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Analyses: \(gameState.analysisResults.count)")
+                            if gameState.analysisResults.count >= 3 {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Ready to continue")
+                                    .foregroundColor(.green)
+                            } else {
+                                Text("Need \(max(0, 3 - gameState.analysisResults.count)) more")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.black.opacity(0.6))
+                        .cornerRadius(8)
+
+                        if gameState.canProgressToNextAct {
+                            Button {
+                                gameState.progressToNextAct()
+                            } label: {
+                                HStack {
+                                    Text("Continue to Act IV")
+                                    Image(systemName: "arrow.right")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
                     }
-                    .font(.caption)
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(8)
                     .padding(.bottom, 10)
                 }
 

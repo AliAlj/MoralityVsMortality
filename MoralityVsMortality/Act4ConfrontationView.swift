@@ -198,25 +198,9 @@ struct KathyFinalView: View {
     @EnvironmentObject private var gameState: GameState
     let onComplete: () -> Void
 
-    @State private var dialogueIndex = 0
     @State private var conversationHistory: [ConversationEntry] = []
-
-    private let dialogue: [(ConversationEntry.Speaker, String)] = [
-        (.investigator, "You knew him. Why didn't you say that?"),
-        (.suspect, "...It didn't matter."),
-        (.investigator, "You went there for him. Not protocol. Him."),
-        (.suspect, "...Yes."),
-        (.investigator, "When you found him, was he already dead?"),
-        (.suspect, "...No."),
-        (.investigator, "Then why didn't you call emergency response?"),
-        (.suspect, "...I thought he was over sedated."),
-        (.investigator, "And you still called the surgeon?"),
-        (.suspect, "...He told me not to escalate."),
-        (.investigator, "You knew something was wrong."),
-        (.suspect, "...I wasn't sure."),
-        (.investigator, "You didn't want to be sure."),
-        (.suspect, "...If I was wrong, I lose everything...\nand if I was right...")
-    ]
+    @State private var currentQuestions: [ConfrontationQuestion] = []
+    @State private var questionPhase = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -265,34 +249,107 @@ struct KathyFinalView: View {
                 }
             }
 
-            // Advance button
-            HStack {
-                Spacer()
-                if dialogueIndex < dialogue.count {
-                    Button("Continue") {
-                        advanceDialogue()
-                    }
-                    .buttonStyle(.borderedProminent)
-                } else {
+            // Question choices
+            VStack(spacing: 8) {
+                if currentQuestions.isEmpty && questionPhase >= kathyPhases.count {
                     Button("Proceed to Dr. Victor Smith") {
                         onComplete()
                     }
                     .buttonStyle(.borderedProminent)
+                    .padding()
+                } else {
+                    ForEach(currentQuestions) { question in
+                        Button {
+                            askQuestion(question)
+                        } label: {
+                            Text(question.questionText)
+                                .font(.caption)
+                                .foregroundColor(.primary)
+                                .padding(10)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
                 }
-                Spacer()
             }
-            .padding()
         }
         .onAppear {
-            advanceDialogue()
+            loadPhase()
         }
     }
 
-    private func advanceDialogue() {
-        guard dialogueIndex < dialogue.count else { return }
-        let (speaker, text) = dialogue[dialogueIndex]
-        conversationHistory.append(ConversationEntry(speaker: speaker, text: text))
-        dialogueIndex += 1
+    private func askQuestion(_ question: ConfrontationQuestion) {
+        conversationHistory.append(ConversationEntry(speaker: .investigator, text: question.questionText))
+        conversationHistory.append(ConversationEntry(speaker: .suspect, text: question.responseText))
+        currentQuestions.removeAll()
+
+        questionPhase += 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            loadPhase()
+        }
+    }
+
+    private func loadPhase() {
+        guard questionPhase < kathyPhases.count else {
+            currentQuestions = []
+            return
+        }
+        currentQuestions = kathyPhases[questionPhase]
+    }
+
+    private var kathyPhases: [[ConfrontationQuestion]] {
+        [
+            [
+                ConfrontationQuestion(
+                    questionText: "You knew him. Why didn't you say that?",
+                    responseText: "...It didn't matter."
+                )
+            ],
+            [
+                ConfrontationQuestion(
+                    questionText: "You went there for him. Not protocol. Him.",
+                    responseText: "...Yes."
+                )
+            ],
+            [
+                ConfrontationQuestion(
+                    questionText: "When you found him, was he already dead?",
+                    responseText: "...No."
+                )
+            ],
+            [
+                ConfrontationQuestion(
+                    questionText: "Then why didn't you call emergency response?",
+                    responseText: "...I thought he was over sedated."
+                )
+            ],
+            [
+                ConfrontationQuestion(
+                    questionText: "And you still called the surgeon?",
+                    responseText: "...He told me not to escalate."
+                )
+            ],
+            [
+                ConfrontationQuestion(
+                    questionText: "You knew something was wrong.",
+                    responseText: "...I wasn't sure."
+                )
+            ],
+            [
+                ConfrontationQuestion(
+                    questionText: "You didn't want to be sure.",
+                    responseText: "...If I was wrong, I lose everything...\nand if I was right..."
+                )
+            ]
+        ]
     }
 }
 
@@ -498,14 +555,7 @@ struct SurgeonConfrontationView: View {
                     responseText: "No. I decided his death would matter."
                 )
             ],
-            // Phase 12: Final push
-            [
-                ConfrontationQuestion(
-                    questionText: "He wasn't even proven guilty beyond doubt.",
-                    responseText: "That doesn't change the outcome."
-                )
-            ],
-            // Phase 13
+            // Phase 12
             [
                 ConfrontationQuestion(
                     questionText: "You killed him.",
@@ -630,7 +680,7 @@ struct FinalChoiceView: View {
                             .foregroundColor(.white)
                             .tracking(8)
 
-                        Text("You walk away.\nThe report reads: heart attack.\n\nDr. Smith continues his work.\nMore prisoners are selected.\nMore lives are saved.\n\nWayne Michaels is buried\nwith a donor status he never chose.")
+                        Text("You walk away.\nThe report reads: cardiac arrest.\n\nDr. Smith continues his work.\nMore prisoners are selected.\nMore lives are saved.\n\nWayne Michaels is buried\nwith a donor status he never chose.")
                             .font(.custom("Times New Roman", size: 18))
                             .foregroundColor(.white.opacity(0.8))
                             .multilineTextAlignment(.center)
@@ -642,6 +692,25 @@ struct FinalChoiceView: View {
                         .foregroundColor(.white.opacity(0.5))
                         .tracking(6)
                         .padding(.top, 30)
+
+                    Button {
+                        gameState.resetGame()
+                    } label: {
+                        Text("PLAY AGAIN")
+                            .font(.custom("Times New Roman", size: 16))
+                            .foregroundColor(.white)
+                            .tracking(3)
+                            .padding(.horizontal, 30)
+                            .padding(.vertical, 12)
+                            .background(Color.white.opacity(0.15))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 20)
                 }
                 .transition(.opacity)
             }

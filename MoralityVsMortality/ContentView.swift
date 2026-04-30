@@ -7,26 +7,24 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
-                HeaderView()
-
-                Divider()
-
-                Group {
-                    switch gameState.currentAct {
-                    case .interrogation:  Act1InterrogationView()
-                    case .investigation:  Act2InvestigationView()
-                    case .analysis:       Act3AnalysisView()
-                    case .confrontation:  Act4ConfrontationView()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                Divider()
-
-                BottomNavigationView()
+            Group {
+                #if DEBUG
+                activeActView
+                #else
+                standardBody
+                #endif
             }
             .opacity(showingActCard ? 0 : 1)
+
+            #if DEBUG
+            if !showingActCard {
+                DebugMenuView()
+                    .padding(.top, 64)
+                    .padding(.trailing, 20)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .zIndex(1000)
+            }
+            #endif
 
             if showingActCard {
                 ActTitleCardView(act: gameState.currentAct) {
@@ -46,6 +44,29 @@ struct ContentView: View {
             showingActCard = true
         }
     }
+
+    private var activeActView: some View {
+        Group {
+            switch gameState.currentAct {
+            case .interrogation:  Act1InterrogationView()
+            case .investigation:  Act2InvestigationView()
+            case .analysis:       Act3AnalysisView()
+            case .confrontation:  Act4ConfrontationView()
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var standardBody: some View {
+        VStack(spacing: 0) {
+            HeaderView()
+            Divider()
+            activeActView
+            Divider()
+            BottomNavigationView()
+        }
+    }
+
 }
 
 // MARK: - Act Title Card
@@ -127,27 +148,50 @@ struct HeaderView: View {
             Text("Evidence: \(gameState.realEvidenceCount)")
                 .font(.caption).foregroundColor(.secondary)
 
-            #if DEBUG
-            Menu("Debug") {
-                ForEach(GameAct.allCases, id: \.rawValue) { act in
-                    Button("Jump to \(act.title)") { gameState.jumpToAct(act) }
-                }
-                Divider()
-                Button("Reset") { gameState.resetGame() }
-                // Reset onboarding
-                Button("Reset Onboarding") {
-                    UserDefaults.standard.removeObject(forKey: "playerName")
-                    UserDefaults.standard.removeObject(forKey: "selectedDetective")
-                    UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
-                }
-            }
-            .menuStyle(.borderlessButton)
-            #endif
         }
         .padding()
         .background(Color.primary.opacity(0.04))
     }
 }
+
+#if DEBUG
+struct DebugMenuView: View {
+    @EnvironmentObject var gameState: GameState
+
+    var body: some View {
+        Menu {
+            ForEach(GameAct.allCases, id: \.rawValue) { act in
+                Button("Jump to \(act.title)") { gameState.jumpToAct(act) }
+            }
+            Divider()
+            Button("Reset") { gameState.resetGame() }
+            Button("Reset Onboarding") {
+                UserDefaults.standard.removeObject(forKey: "playerName")
+                UserDefaults.standard.removeObject(forKey: "selectedDetective")
+                UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "ladybug.fill")
+                Text("Debug")
+            }
+            .font(.headline.weight(.bold))
+            .foregroundColor(.white)
+        }
+        .menuStyle(.borderlessButton)
+        .buttonStyle(.plain)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(Color.blue)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.45), lineWidth: 1.5)
+        )
+        .cornerRadius(12)
+        .shadow(color: .blue.opacity(0.35), radius: 8, x: 0, y: 2)
+    }
+}
+#endif
 
 // MARK: - Bottom Nav
 struct BottomNavigationView: View {

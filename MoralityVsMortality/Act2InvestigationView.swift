@@ -26,7 +26,7 @@ class Act2InvestigationViewModel: ObservableObject {
 
     let guardDialogue: [String] = [
         "You must be the investigator. I'm Jason Perry. I'll be escorting you through the facility.",
-        "An inmate named Wayne Michaels died earlier this morning. Officially, it was a heart attack. You're here to confirm that.",
+        "An inmate named Wayne Michaels died earlier this morning. Officially, it was cardiac arrest. You're here to confirm that.",
         "You can search two locations: his jail cell and the hospital room where he was found.",
         "Look around carefully. Hover over anything that catches your eye and click to collect it as evidence.",
         "Oh, before I forget. Here, take these. The victim's personal belongings and his prison intake form."
@@ -149,11 +149,11 @@ class Act2InvestigationViewModel: ObservableObject {
                 imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
-                    description: "A crumpled letter hidden under the bed. 'I'll be there when you wake up. We'll figure this out together.' Signed K.",
+                    description: "A crumpled letter hidden under the bed. 'When I get out of here, I'm coming straight to you. You're the only good thing in this place.' Signed W.",
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
-                    metadata: ["author": "Kathy Williams", "tone": "romantic, personal"]
+                    metadata: ["author": "Wayne Michaels", "recipient": "Kathy Williams", "tone": "romantic, personal"]
                 )
             )
         ]
@@ -180,95 +180,82 @@ struct Act2SceneInvestigationView: View {
     @EnvironmentObject private var gameState: GameState
 
     var body: some View {
-        VStack {
-            // Instructions
-            HStack {
-                Text("🔍 **Investigation Mode**")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Text("Click areas to search for evidence")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding()
-            
-            // Room switcher
-            Picker("Location", selection: $viewModel.currentRoom) {
-                ForEach(InvestigationRoom.allCases, id: \.self) { room in
-                    Text(room.rawValue).tag(room)
+        GeometryReader { geometry in
+            ZStack {
+                // Room background
+                RoomBackgroundView(room: viewModel.currentRoom)
+                    .allowsHitTesting(false)
+
+                // Interactive areas - positions scale to available space
+                ForEach(viewModel.investigationAreas) { area in
+                    InvestigationAreaView(
+                        area: area,
+                        isSearched: gameState.isAreaSearched(area.name),
+                        onTap: {
+                            viewModel.searchArea(area, in: gameState)
+                        }
+                    )
+                    .position(
+                        x: (area.position.x / 700) * geometry.size.width,
+                        y: (area.position.y / 450) * geometry.size.height
+                    )
                 }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            
-            // Main investigation area
-            GeometryReader { geometry in
-                ZStack {
-                    // Room background
-                    RoomBackgroundView(room: viewModel.currentRoom)
-                        .allowsHitTesting(false)
-                    
-                    // Interactive areas - positions scale to available space
-                    ForEach(viewModel.investigationAreas) { area in
-                        InvestigationAreaView(
-                            area: area,
-                            isSearched: gameState.isAreaSearched(area.name),
-                            onTap: {
-                                viewModel.searchArea(area, in: gameState)
-                            }
-                        )
-                        .position(
-                            x: (area.position.x / 700) * geometry.size.width,
-                            y: (area.position.y / 450) * geometry.size.height
-                        )
+
+                VStack(spacing: 12) {
+                    Picker("Location", selection: $viewModel.currentRoom) {
+                        ForEach(InvestigationRoom.allCases, id: \.self) { room in
+                            Text(room.rawValue).tag(room)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .colorScheme(.dark)
+                }
+                .padding(16)
+                .background(Color.black)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                )
+                .cornerRadius(14)
+                .padding()
+                .frame(maxHeight: .infinity, alignment: .top)
+
+                if viewModel.showingGuard {
+                    GuardDialogueView(viewModel: viewModel)
+                        .padding()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        .transition(.move(edge: .trailing))
+                }
+
+                if viewModel.showingBelongingsReveal {
+                    EvidencePopupOverlay(
+                        title: "Wayne's Personal Belongings",
+                        imageName: "waynesBelongings",
+                        subtitle: "Added to evidence.",
+                        buttonText: "Continue"
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            viewModel.dismissBelongingsReveal()
+                        }
+                    }
+                } else if viewModel.showingFormReveal {
+                    EvidencePopupOverlay(
+                        title: "Prison Intake Form",
+                        imageName: "waynesForm",
+                        subtitle: "Wayne's Belongings and Prison Intake Form added to evidence.",
+                        buttonText: "Continue"
+                    ) {
+                        viewModel.dismissFormReveal()
+
+                        Task { @MainActor in
+                            await Task.yield()
+                            viewModel.commitGuardEvidence(in: gameState)
+                        }
                     }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
-            
-            // Evidence summary
-            EvidenceSummaryView()
-        }
-        // Guard dialogue — bottom right, doesn't block room
-        .overlay(alignment: .bottomTrailing) {
-            if viewModel.showingGuard {
-                GuardDialogueView(viewModel: viewModel)
-                    .padding()
-                    .transition(.move(edge: .trailing))
-            }
-        }
-        // Full-screen popups — only one shows at a time
-        .overlay {
-            if viewModel.showingBelongingsReveal {
-                EvidencePopupOverlay(
-                    title: "Wayne's Personal Belongings",
-                    imageName: "waynesBelongings",
-                    subtitle: "Added to evidence.",
-                    buttonText: "Continue"
-                ) {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.dismissBelongingsReveal()
-                    }
-                }
-            } else if viewModel.showingFormReveal {
-                EvidencePopupOverlay(
-                    title: "Prison Intake Form",
-                    imageName: "waynesForm",
-                    subtitle: "Wayne's Belongings and Prison Intake Form added to evidence.",
-                    buttonText: "Continue"
-                ) {
-                    viewModel.dismissFormReveal()
-
-                    Task { @MainActor in
-                        await Task.yield()
-                        viewModel.commitGuardEvidence(in: gameState)
-                    }
-                }
-            }
+            .clipped()
         }
     }
 }
@@ -482,14 +469,14 @@ struct GuardDialogueView: View {
         HStack(alignment: .bottom, spacing: 16) {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Jason Perry")
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.white.opacity(0.7))
 
                 Text(viewModel.guardDialogue[viewModel.guardDialogueIndex])
-                    .font(.body)
+                    .font(.title3)
                     .foregroundColor(.white)
-                    .lineSpacing(6)
+                    .lineSpacing(8)
 
                 HStack {
                     Spacer()
@@ -499,19 +486,19 @@ struct GuardDialogueView: View {
                         }
                     } label: {
                         Text(viewModel.guardDialogueIndex < viewModel.guardDialogue.count - 1 ? "Continue" : "Got it")
-                            .font(.subheadline)
+                            .font(.body)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(18)
-            .frame(maxWidth: 480)
+            .padding(22)
+            .frame(maxWidth: 580)
             .background(Color.black.opacity(0.85))
             .cornerRadius(14)
             .overlay(
@@ -522,7 +509,7 @@ struct GuardDialogueView: View {
             Image("prisonGuard")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 130, height: 130)
+                .frame(width: 180, height: 180)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 2))
         }
