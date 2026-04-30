@@ -113,23 +113,24 @@ class GameState: ObservableObject {
                 .comparison: "The license screenshot on this form shows Organ Donor as YES. But Wayne's real license says NO. Someone altered the image."
             ],
             // Timeline Tool results
-            "Room Access Log": [
-                .timeline: "Kathy Alvarez badged in at 3:00 AM. Dr. Kazimir entered shortly after. Wayne's vitals were still active at that time.",
-                .contextLink: "Cross referencing the access log with Kathy's Love Letter confirms she visited Wayne personally, not on duty."
+            "Time Log": [
+                .timeline: "Dr. Victor Smith entered unauthorized at 2:00 AM. Hilarie Jones entered at 2:14 AM and saw him near the IV. Kathy Williams badged in at 3:00 AM and found Wayne unresponsive. Dr. Smith returned at 3:10 AM and pronounced death.",
+                .contextLink: "The Time Log shows Dr. Smith was in the room at 2:00 AM — the same time the Syringe was likely used. Hilarie Jones witnessed him near Wayne's IV and saw a syringe cap drop. This links the unauthorized entry to the sedation."
             ],
             "Vital Monitor Printout": [
                 .timeline: "Heart rate and oxygen levels were present at 3:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
             ],
             // Medical Analysis Tool results
             "Syringe": [
-                .medical: "Traces of elevated sedative compounds detected. Dosage far exceeds standard preoperative levels. This was not accidental."
+                .medical: "Traces of elevated sedative compounds detected. Dosage far exceeds standard preoperative levels. This was not accidental.",
+                .contextLink: "The Syringe matches the receptionist's account of Dr. Smith injecting something into Wayne's IV at 2:00 AM. The Time Log confirms he was in the room at that time."
             ],
             "Sedation Chart": [
                 .medical: "Prescribed dosage is significantly higher than normal for a routine procedure. Sedation levels were intentionally increased."
             ],
             // Context Link Tool results
             "Love Letter": [
-                .contextLink: "Written by Kathy Alvarez. She visited Wayne intentionally at 3:00 AM. This was personal, not protocol."
+                .contextLink: "Written by Kathy Williams. She visited Wayne intentionally at 3:00 AM. This was personal, not protocol."
             ]
         ]
         return combinations[evidence.name]?[tool] ?? ""

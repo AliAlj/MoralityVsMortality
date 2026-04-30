@@ -17,10 +17,10 @@ enum InterrogationStage: Int, CaseIterable {
 
     var suspectName: String {
         switch self {
-        case .kathy: return "Kathy Alvarez"
-        case .receptionist: return "Receptionist"
+        case .kathy: return "Kathy Williams"
+        case .receptionist: return "Hilarie Jones"
         case .morgueWorker: return "Peter Simmons"
-        case .surgeon: return "Dr. Viktor Kazimir"
+        case .surgeon: return "Dr. Victor Smith"
         }
     }
 
@@ -36,7 +36,7 @@ enum InterrogationStage: Int, CaseIterable {
     var greeting: String {
         switch self {
         case .kathy: return "I understand you want to talk about what happened. I'll tell you what I know."
-        case .receptionist: return "How can I help you? I manage the front desk and access logs."
+        case .receptionist: return "How can I help you? I manage the front desk and the room access logs."
         case .morgueWorker: return "I handled the body. That's my job. What do you want to know?"
         case .surgeon: return "I'm a busy man. Ask your questions."
         }
@@ -49,7 +49,7 @@ class Act1ViewModel: ObservableObject {
     @Published var currentStage: InterrogationStage = .kathy
     @Published var conversationHistory: [ConversationEntry] = []
     @Published var availableQuestions: [InterrogationQuestion] = []
-    @Published var askedQuestions: Set<String> = []
+    @Published var currentQuestionIndex = 0
     @Published var stageComplete = false
     @Published var completedStages: Set<Int> = []
 
@@ -70,7 +70,7 @@ class Act1ViewModel: ObservableObject {
     func loadStage(_ stage: InterrogationStage) {
         currentStage = stage
         conversationHistory.removeAll()
-        askedQuestions.removeAll()
+        currentQuestionIndex = 0
         stageComplete = false
         loadQuestions(for: stage)
 
@@ -95,9 +95,13 @@ class Act1ViewModel: ObservableObject {
         }
     }
 
-    func askQuestion(_ question: InterrogationQuestion) {
-        guard !askedQuestions.contains(question.id) else { return }
-        askedQuestions.insert(question.id)
+    var currentQuestion: InterrogationQuestion? {
+        guard currentQuestionIndex < availableQuestions.count else { return nil }
+        return availableQuestions[currentQuestionIndex]
+    }
+
+    func askCurrentQuestion() {
+        guard let question = currentQuestion else { return }
 
         conversationHistory.append(
             ConversationEntry(speaker: .investigator, text: question.questionText)
@@ -110,7 +114,7 @@ class Act1ViewModel: ObservableObject {
             let evidence = Evidence(
                 name: evidenceName,
                 description: question.evidenceDescription ?? "Information from interrogation.",
-                actDiscovered: 2,
+                actDiscovered: 1,
                 isRealEvidence: true,
                 evidenceType: .document,
                 metadata: ["source": "interrogation", "suspect": currentStage.suspectName]
@@ -123,31 +127,22 @@ class Act1ViewModel: ObservableObject {
             responses: [DialogueResponse(text: question.responseText)]
         )
         gameState.unlockDialogueNode(node)
-        // Check if all questions for this stage are done
-        if unaskedQuestions.isEmpty {
+
+        currentQuestionIndex += 1
+        if currentQuestionIndex >= availableQuestions.count {
             stageComplete = true
         }
-    }
-
-    var unaskedQuestions: [InterrogationQuestion] {
-        availableQuestions.filter { q in
-            !askedQuestions.contains(q.id) && meetsRequirements(q)
-        }
-    }
-
-    private func meetsRequirements(_ question: InterrogationQuestion) -> Bool {
-        question.requiredEvidence.allSatisfy { gameState.hasEvidence(named: $0) }
     }
 
     var isLastStage: Bool {
         currentStage == .surgeon
     }
 
-    // MARK: - Kathy Alvarez Questions
+    // MARK: - Kathy Williams Questions
     private func kathyQuestions() -> [InterrogationQuestion] {
         [
             InterrogationQuestion(
-                questionText: "Why were you at the hospital at 2 AM?",
+                questionText: "Why were you at the hospital at 3 AM?",
                 responseText: "I came back to grab something I forgot... I checked on my patient while I was there."
             ),
             InterrogationQuestion(
@@ -160,7 +155,7 @@ class Act1ViewModel: ObservableObject {
             ),
             InterrogationQuestion(
                 questionText: "What did you do next?",
-                responseText: "I called Dr. Kazimir."
+                responseText: "I called Dr. Smith."
             ),
             InterrogationQuestion(
                 questionText: "Why not call emergency response?",
@@ -178,13 +173,17 @@ class Act1ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "Do you track who enters patient rooms?",
-                responseText: "Yes. Staff use badges. It's all logged in the system."
+                responseText: "Yes. Staff use badges. It's all logged in the system. There's a time log posted by every room door."
             ),
             InterrogationQuestion(
-                questionText: "Can I access those logs?",
-                responseText: "I'm not supposed to... but if this is an official investigation, I can pull them up.",
-                unlocksEvidence: "Room Access Log",
-                evidenceDescription: "Digital access log showing Kathy Alvarez entered at 3:00 AM. Dr. Kazimir entered shortly after. Confirms the timeline."
+                questionText: "Can I get a copy of the room access log for Wayne's room?",
+                responseText: "I'm not supposed to... but if this is an official investigation, I can pull it up for you.",
+                unlocksEvidence: "Time Log",
+                evidenceDescription: "Room access log showing all entries into Wayne's hospital room. You'll need to examine this more closely later."
+            ),
+            InterrogationQuestion(
+                questionText: "Is there anything else you can tell me about that night?",
+                responseText: "Not really... it was a normal shift. I just manage the desk and the logs. You should talk to the people who were actually in the room."
             )
         ]
     }
@@ -219,19 +218,16 @@ class Act1ViewModel: ObservableObject {
                 responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 3:10 AM."
             ),
             InterrogationQuestion(
-                questionText: "The sedation levels seem unusually high for a routine procedure.",
-                responseText: "I approved the sedation protocol. Every patient is different.",
-                requiredEvidence: ["Sedation Chart"]
+                questionText: "What was the cause of death?",
+                responseText: "Cardiac arrest. It happens. Especially with patients under sedation before major procedures."
             ),
             InterrogationQuestion(
-                questionText: "His vital monitor shows he still had a heartbeat at 3:00 AM.",
-                responseText: "You're misreading medical data. Residual electrical activity isn't the same as life.",
-                requiredEvidence: ["Vital Monitor Printout"]
+                questionText: "Was there anything unusual about his condition?",
+                responseText: "No. He was a standard preoperative patient. Nothing out of the ordinary."
             ),
             InterrogationQuestion(
-                questionText: "His license says he's not an organ donor. But his intake form has a screenshot showing he is.",
-                responseText: "Records get updated. Patients change their minds. It happens.",
-                requiredEvidence: ["Wayne's License", "Prison Intake Form"]
+                questionText: "Who authorized the sedation?",
+                responseText: "I did. I approve all sedation protocols for my patients. It was routine."
             )
         ]
     }
@@ -343,14 +339,14 @@ struct Act1InterrogationMainView: View {
 
             Divider()
 
-            // Questions or next button
-            if viewModel.stageComplete {
-                HStack {
-                    Spacer()
+            // Sequential question or next button
+            VStack(spacing: 8) {
+                if viewModel.stageComplete {
                     if viewModel.isLastStage {
                         Text("Interrogations complete.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
+                            .padding()
                     } else {
                         Button {
                             viewModel.advanceToNextStage()
@@ -361,37 +357,30 @@ struct Act1InterrogationMainView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .padding()
                     }
-                    Spacer()
-                }
-                .padding()
-                .background(Color.gray.opacity(0.05))
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(viewModel.unaskedQuestions) { question in
-                            Button {
-                                viewModel.askQuestion(question)
-                            } label: {
-                                Text(question.questionText)
-                                    .font(.caption)
-                                    .foregroundColor(.primary)
-                                    .padding(10)
-                                    .background(Color.blue.opacity(0.1))
-                                    .cornerRadius(8)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                        }
+                } else if let question = viewModel.currentQuestion {
+                    Button {
+                        viewModel.askCurrentQuestion()
+                    } label: {
+                        Text(question.questionText)
+                            .font(.caption)
+                            .foregroundColor(.primary)
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                            )
                     }
-                    .padding()
+                    .buttonStyle(.plain)
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
                 }
-                .frame(height: 60)
-                .background(Color.gray.opacity(0.05))
             }
+            .background(Color.gray.opacity(0.05))
         }
         .onAppear {
             viewModel.setGameState(gameState)

@@ -164,7 +164,7 @@ let evidenceImageMap: [String: String] = [
     "Love Letter": "loveLetter",
     "Wayne's Belongings": "waynesBelongings",
     "Prison Intake Form": "waynesForm",
-    "Room Access Log": "roomAccessLog",
+    "Time Log": "timeLog",
     "Wayne's License": "waynesLicense"
 ]
 

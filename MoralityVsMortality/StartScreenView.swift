@@ -135,7 +135,7 @@ struct IntroScreenView: View {
 
         "The attending surgeon: Dr. Viktor Kazimir\nThe nurse on duty: Kathy Alvarez\n\nAccording to the official report,\nWayne suffered a sudden heart attack.\n\nCase closed.",
 
-        "But something doesn't add up.\n\nYou've been hired  to find out what really happened."
+        "But something doesn't add up.\n\nYou've been hired to find out what really happened."
     ]
 
     var body: some View {

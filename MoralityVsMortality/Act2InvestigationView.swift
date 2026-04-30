@@ -153,7 +153,7 @@ class Act2InvestigationViewModel: ObservableObject {
                     actDiscovered: 1,
                     isRealEvidence: true,
                     evidenceType: .document,
-                    metadata: ["author": "Kathy Alvarez", "tone": "romantic, personal"]
+                    metadata: ["author": "Kathy Williams", "tone": "romantic, personal"]
                 )
             )
         ]
