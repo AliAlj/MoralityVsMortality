@@ -52,8 +52,8 @@ struct Act3AnalysisView: View {
                         height: geo.size.height * 0.38
                     )
                     .position(
-                        x: geo.size.width * 0.545,
-                        y: geo.size.height * 0.42
+                        x: geo.size.width * 0.55,
+                        y: geo.size.height * 0.30
                     )
                 }
             }
@@ -681,11 +681,11 @@ struct OfficeBulletinButton: View {
         Button(action: onTap) {
             Image("officeBulletin")
                 .resizable()
-                .scaledToFit()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scaledToFill()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .brightness(isHovered ? 0.15 : -0.3)
         }
-        .offset(x: -25, y: -100)
+//        .offset(x: -25, y: -100)
         .buttonStyle(.plain)
         .onHover { hovering in
             isHovered = hovering
