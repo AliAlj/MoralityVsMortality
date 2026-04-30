@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Act 3: Wrapper View
+// act 3 wrapper view
 struct Act3AnalysisView: View {
     @EnvironmentObject private var gameState: GameState
     @State private var lightsOn = false
@@ -52,8 +52,8 @@ struct Act3AnalysisView: View {
                         height: geo.size.height * 0.38
                     )
                     .position(
-                        x: geo.size.width * 0.545,
-                        y: geo.size.height * 0.42
+                        x: geo.size.width * 0.55,
+                        y: geo.size.height * 0.30
                     )
                 }
             }
@@ -98,7 +98,7 @@ struct Act3AnalysisView: View {
     }
 }
 
-// MARK: - Case Board View
+// case board view
 struct CaseBoardView: View {
     @EnvironmentObject private var gameState: GameState
     @Binding var showBoard: Bool
@@ -462,7 +462,7 @@ struct CaseBoardView: View {
     }
 }
 
-// MARK: - Evidence Board Item
+// evidence board item
 struct EvidenceBoardItem: View {
     let evidence: Evidence
     let isSelected: Bool
@@ -530,14 +530,14 @@ struct EvidenceBoardItem: View {
     }
 }
 
-// MARK: - Supporting Models
+// supporting models
 struct AnalysisResult: Identifiable {
     let id = UUID()
     let evidence: Evidence
     let tool: AnalysisTool
 }
 
-// MARK: - Magnify Overlay
+// magnify overlay
 struct MagnifyOverlay: View {
     let evidenceName: String
     let imageName: String
@@ -672,7 +672,7 @@ class ScrollDetectorView: NSView {
     }
 }
 
-// MARK: - Office Bulletin Button
+// Office Bulletin Button
 struct OfficeBulletinButton: View {
     let onTap: () -> Void
     @State private var isHovered = false
@@ -681,11 +681,11 @@ struct OfficeBulletinButton: View {
         Button(action: onTap) {
             Image("officeBulletin")
                 .resizable()
-                .scaledToFit()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scaledToFill()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .brightness(isHovered ? 0.15 : -0.3)
         }
-        .offset(x: -25, y: -100)
+//        .offset(x: -25, y: -100)
         .buttonStyle(.plain)
         .onHover { hovering in
             isHovered = hovering

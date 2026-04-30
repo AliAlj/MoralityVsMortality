@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-// MARK: - Act 2: Wrapper View
+
 struct Act2InvestigationView: View {
     @StateObject private var viewModel = Act2InvestigationViewModel()
 
@@ -10,7 +10,7 @@ struct Act2InvestigationView: View {
     }
 }
 
-// MARK: - Act 2: Scene Investigation View Model
+
 @MainActor
 class Act2InvestigationViewModel: ObservableObject {
     @Published var currentRoom: InvestigationRoom = .jailCell
@@ -94,8 +94,8 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Syringe",
                 description: "A syringe found near the hospital bed",
-                position: CGPoint(x: 300, y: 325),
-                size: CGSize(width: 80, height: 70),
+                position: CGPoint(x: 290, y: 350),
+                size: CGSize(width: 60, height: 50),
                 imageName: "syringe",
                 evidence: Evidence(
                     name: "Syringe",
@@ -109,7 +109,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Sedation Chart",
                 description: "A chart clipped to the bed frame",
-                position: CGPoint(x: 515, y: 320),
+                position: CGPoint(x: 590, y: 245),
                 size: CGSize(width: 80, height: 60),
                 imageName: "sedationClipboard",
                 evidence: Evidence(
@@ -124,7 +124,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Vital Monitor",
                 description: "The bedside vital signs monitor with a printout",
-                position: CGPoint(x: 90, y: 280),
+                position: CGPoint(x: 90, y: 180),
                 size: CGSize(width: 80, height: 80),
                 imageName: "vitalMonitor",
                 evidence: Evidence(
@@ -174,7 +174,7 @@ class Act2InvestigationViewModel: ObservableObject {
     }
 }
 
-// MARK: - Act 2: Scene Investigation View
+// scene investigation view
 struct Act2SceneInvestigationView: View {
     @ObservedObject var viewModel: Act2InvestigationViewModel
     @EnvironmentObject private var gameState: GameState
@@ -260,7 +260,7 @@ struct Act2SceneInvestigationView: View {
     }
 }
 
-// MARK: - Evidence Popup Overlay
+// evidence pop up overlay
 struct EvidencePopupOverlay: View {
     let title: String
     let imageName: String
@@ -307,7 +307,7 @@ struct EvidencePopupOverlay: View {
     }
 }
 
-// MARK: - Room Background
+// this is for the room background
 struct RoomBackgroundView: View {
     let room: InvestigationRoom
 
@@ -340,7 +340,7 @@ struct RoomBackgroundView: View {
 
 }
 
-// MARK: - Investigation Area View
+// investigation area view
 struct InvestigationAreaView: View {
     let area: InvestigationArea
     let isSearched: Bool
@@ -416,7 +416,7 @@ struct InvestigationAreaView: View {
     }
 }
 
-// MARK: - Evidence Summary
+// evidence summary
 struct EvidenceSummaryView: View {
     @EnvironmentObject private var gameState: GameState
     
@@ -461,7 +461,7 @@ struct EvidenceSummaryView: View {
     }
 }
 
-// MARK: - Prison Guard Dialogue
+// prison guard dialogue 
 struct GuardDialogueView: View {
     @ObservedObject var viewModel: Act2InvestigationViewModel
 
@@ -521,3 +521,4 @@ struct GuardDialogueView: View {
         .environmentObject(GameState())
         .frame(width: 800, height: 600)
 }
+

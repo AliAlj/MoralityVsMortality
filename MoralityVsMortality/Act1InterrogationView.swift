@@ -1,14 +1,14 @@
 import SwiftUI
 import Combine
 
-// MARK: - Act 1: Wrapper View
+// wrapper view
 struct Act1InterrogationView: View {
     var body: some View {
         Act1InterrogationMainView()
     }
 }
 
-// MARK: - Interrogation Order
+// interoggation view
 enum InterrogationStage: Int, CaseIterable {
     case kathy = 0
     case receptionist = 1
@@ -52,7 +52,7 @@ enum InterrogationStage: Int, CaseIterable {
     }
 }
 
-// MARK: - Act 1: View Model
+// act 1: view model
 @MainActor
 class Act1ViewModel: ObservableObject {
     @Published var currentStage: InterrogationStage = .kathy
@@ -147,7 +147,8 @@ class Act1ViewModel: ObservableObject {
         currentStage == .surgeon
     }
 
-    // MARK: - Kathy Williams Questions
+    // kathy williams questions that are asked
+    
     private func kathyQuestions() -> [InterrogationQuestion] {
         [
             InterrogationQuestion(
@@ -177,7 +178,8 @@ class Act1ViewModel: ObservableObject {
         ]
     }
 
-    // MARK: - Receptionist Questions
+    // receptionist questions
+    
     private func receptionistQuestions() -> [InterrogationQuestion] {
         [
             InterrogationQuestion(
@@ -197,7 +199,8 @@ class Act1ViewModel: ObservableObject {
         ]
     }
 
-    // MARK: - Morgue Worker Questions
+    // morgue worker questions
+    
     private func morgueWorkerQuestions() -> [InterrogationQuestion] {
         [
             InterrogationQuestion(
@@ -219,7 +222,7 @@ class Act1ViewModel: ObservableObject {
         ]
     }
 
-    // MARK: - Surgeon Initial Questions
+    // surgeon initial questions
     private func surgeonQuestions() -> [InterrogationQuestion] {
         [
             InterrogationQuestion(
@@ -242,7 +245,7 @@ class Act1ViewModel: ObservableObject {
     }
 }
 
-// MARK: - Interrogation Question Model
+// interrogation questions view
 struct InterrogationQuestion: Identifiable {
     let id: String
     let questionText: String
@@ -263,7 +266,7 @@ struct InterrogationQuestion: Identifiable {
     }
 }
 
-// MARK: - Act 1: Main View
+// main view
 struct Act1InterrogationMainView: View {
     @EnvironmentObject private var gameState: GameState
     @StateObject private var viewModel: Act1ViewModel
@@ -419,7 +422,7 @@ struct Act1InterrogationMainView: View {
     }
 }
 
-// MARK: - Conversation Bubble
+// conversation bubble
 struct ConversationBubbleView: View {
     let entry: ConversationEntry
     let playerImage: String

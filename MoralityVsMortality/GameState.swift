@@ -5,11 +5,11 @@ import Combine
 class GameState: ObservableObject {
     private let totalInvestigationEvidenceCount = 6
 
-    // MARK: - Player (persisted via AppStorage in views, synced here)
+    // Player (persisted via AppStorage in views, synced here)
     @Published var playerName: String = UserDefaults.standard.string(forKey: "playerName") ?? ""
     @Published var selectedDetective: String = UserDefaults.standard.string(forKey: "selectedDetective") ?? "detectiveOne"
 
-    // MARK: - Published
+    //  Published
     @Published var currentAct: GameAct = .interrogation
     @Published var collectedEvidence: [Evidence] = []
     @Published var unlockedDialogue: [DialogueNode] = []
@@ -19,7 +19,7 @@ class GameState: ObservableObject {
     var searchedAreas: Set<String> = []
     @Published var analysisResults: [String: String] = [:]
 
-    // MARK: - Computed
+    //  Computed
     var realEvidenceCount: Int   { collectedEvidence.filter(\.isRealEvidence).count }
     var totalEvidenceFound: Int  { collectedEvidence.count }
 
@@ -32,10 +32,10 @@ class GameState: ObservableObject {
         }
     }
 
-    // MARK: - Init
+    //  Init
     init() { }
 
-    // MARK: - Evidence
+    //  Evidence
     func addEvidence(_ evidence: Evidence) {
         guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
         collectedEvidence.append(evidence)
@@ -61,17 +61,17 @@ class GameState: ObservableObject {
         collectedEvidence.first { $0.id == id }
     }
 
-    // MARK: - Areas (Act 1)
+    // Areas (Act 1)
     func markAreaAsSearched(_ name: String) { searchedAreas.insert(name) }
     func isAreaSearched(_ name: String) -> Bool { searchedAreas.contains(name) }
 
-    // MARK: - Dialogue (Act 2)
+    // Dialogue (Act 2)
     func unlockDialogueNode(_ node: DialogueNode) {
         guard !unlockedDialogue.contains(where: { $0.id == node.id }) else { return }
         unlockedDialogue.append(node)
     }
 
-    // MARK: - Analysis (Act 3)
+    //  Analysis (Act 3)
     func performAnalysis(evidenceID: UUID, tool: AnalysisTool) -> String? {
         guard let evidence = getEvidence(by: evidenceID) else { return nil }
         let result = getAnalysisResult(evidence: evidence, tool: tool)
@@ -80,7 +80,7 @@ class GameState: ObservableObject {
         return result
     }
 
-    // MARK: - Progression
+    // Progression
     func progressToNextAct() {
         guard canProgressToNextAct else { return }
         if let next = GameAct(rawValue: currentAct.rawValue + 1) {
@@ -103,7 +103,7 @@ class GameState: ObservableObject {
         gameCompleted = false
     }
 
-    // MARK: - Private
+    // Private
     private func getAnalysisResult(evidence: Evidence, tool: AnalysisTool) -> String {
         let combinations: [String: [AnalysisTool: String]] = [
             // Comparison Tool results

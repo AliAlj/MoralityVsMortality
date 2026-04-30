@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Evidence Model
+// Evidence Model
 struct Evidence: Identifiable, Codable {
     let id: UUID
     let name: String
@@ -28,7 +28,7 @@ struct Evidence: Identifiable, Codable {
     }
 }
 
-// MARK: - Dialogue System
+// Dialogue System
 struct DialogueNode: Identifiable, Codable {
     let id: UUID
     let questionText: String
@@ -51,7 +51,7 @@ struct DialogueResponse: Identifiable, Codable {
     }
 }
 
-// MARK: - 4-Act Structure
+//  4-Act Structure
 enum GameAct: Int, CaseIterable {
     case interrogation = 1
     case investigation = 2
@@ -86,7 +86,7 @@ enum GameAct: Int, CaseIterable {
     }
 }
 
-// MARK: - Investigation
+// Investigation
 struct InvestigationArea: Identifiable {
     let id: UUID
     let name: String
@@ -127,7 +127,7 @@ enum InvestigationRoom: String, CaseIterable {
     }
 }
 
-// MARK: - Analysis Tool
+// Analysis Tool
 enum AnalysisTool: String, CaseIterable {
     case comparison  = "Comparison"
     case timeline    = "Timeline"
@@ -156,7 +156,7 @@ enum AnalysisTool: String, CaseIterable {
     }
 }
 
-// MARK: - Evidence Image Mapping
+// Evidence Image Mapping
 let evidenceImageMap: [String: String] = [
     "Syringe": "syringe",
     "Sedation Chart": "sedationChart",
@@ -168,7 +168,7 @@ let evidenceImageMap: [String: String] = [
     "Wayne's License": "waynesLicense"
 ]
 
-// MARK: - Conversation
+// Conversation
 struct ConversationEntry: Identifiable {
     let id = UUID()
     let speaker: Speaker

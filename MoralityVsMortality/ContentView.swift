@@ -69,7 +69,7 @@ struct ContentView: View {
 
 }
 
-// MARK: - Act Title Card
+// Act Title Card
 struct ActTitleCardView: View {
     let act: GameAct
     let onFinished: () -> Void
@@ -130,7 +130,7 @@ struct ActTitleCardView: View {
     }
 }
 
-// MARK: - Header
+// Header
 struct HeaderView: View {
     @EnvironmentObject var gameState: GameState
 
@@ -193,7 +193,7 @@ struct DebugMenuView: View {
 }
 #endif
 
-// MARK: - Bottom Nav
+// Bottom Nav
 struct BottomNavigationView: View {
     @EnvironmentObject var gameState: GameState
 
