@@ -358,6 +358,7 @@ struct Act1InterrogationMainView: View {
                         }
                     }
                 }
+                .layoutPriority(0)
 
                 Divider()
                     .overlay(Color.white.opacity(0.12))
@@ -403,7 +404,9 @@ struct Act1InterrogationMainView: View {
                         .padding(.bottom, 8)
                     }
                 }
+                .padding(.vertical, 12)
                 .background(Color.white.opacity(0.06))
+                .layoutPriority(1)
             }
         }
         .onAppear {

@@ -91,6 +91,10 @@ struct ReceptionistConfrontationView: View {
                         }
                     }
                 }
+                .layoutPriority(0)
+
+                Divider()
+                    .overlay(Color.white.opacity(0.12))
 
                 VStack(spacing: 8) {
                     if currentQuestions.isEmpty && questionPhase >= receptionistPhases.count {
@@ -109,7 +113,7 @@ struct ReceptionistConfrontationView: View {
                                     .foregroundColor(.white)
                                     .padding(12)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color.white.opacity(0.06))
+                                    .background(Color.white.opacity(0.08))
                                     .cornerRadius(8)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 8)
@@ -122,7 +126,9 @@ struct ReceptionistConfrontationView: View {
                         .padding(.bottom, 8)
                     }
                 }
-                .background(Color.white.opacity(0.04))
+                .padding(.vertical, 12)
+                .background(Color.white.opacity(0.06))
+                .layoutPriority(1)
             }
         }
         .onAppear {
@@ -255,6 +261,10 @@ struct KathyFinalView: View {
                         }
                     }
                 }
+                .layoutPriority(0)
+
+                Divider()
+                    .overlay(Color.white.opacity(0.12))
 
                 VStack(spacing: 8) {
                     if currentQuestions.isEmpty && questionPhase >= kathyPhases.count {
@@ -273,7 +283,7 @@ struct KathyFinalView: View {
                                     .foregroundColor(.white)
                                     .padding(12)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color.white.opacity(0.06))
+                                    .background(Color.white.opacity(0.08))
                                     .cornerRadius(8)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 8)
@@ -286,7 +296,9 @@ struct KathyFinalView: View {
                         .padding(.bottom, 8)
                     }
                 }
-                .background(Color.white.opacity(0.04))
+                .padding(.vertical, 12)
+                .background(Color.white.opacity(0.06))
+                .layoutPriority(1)
             }
         }
         .onAppear {
@@ -419,6 +431,10 @@ struct SurgeonConfrontationView: View {
                         }
                     }
                 }
+                .layoutPriority(0)
+
+                Divider()
+                    .overlay(Color.white.opacity(0.12))
 
                 VStack(spacing: 8) {
                     if currentQuestions.isEmpty && questionPhase >= surgeonPhases.count {
@@ -437,7 +453,7 @@ struct SurgeonConfrontationView: View {
                                     .foregroundColor(.white)
                                     .padding(12)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color.white.opacity(0.06))
+                                    .background(Color.white.opacity(0.08))
                                     .cornerRadius(8)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 8)
@@ -450,7 +466,9 @@ struct SurgeonConfrontationView: View {
                         .padding(.bottom, 8)
                     }
                 }
-                .background(Color.white.opacity(0.04))
+                .padding(.vertical, 12)
+                .background(Color.white.opacity(0.06))
+                .layoutPriority(1)
             }
         }
         .onAppear {

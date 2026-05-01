@@ -207,47 +207,15 @@ struct BottomNavigationView: View {
 
     var body: some View {
         HStack {
-            if gameState.currentAct.rawValue > 1 && !gameState.gameCompleted {
-                Button {
-                    if let prev = GameAct(rawValue: gameState.currentAct.rawValue - 1) {
-                        gameState.jumpToAct(prev)
-                    }
-                } label: {
-                    Label("Back", systemImage: "chevron.left")
-                }
-            }
-
             Spacer()
 
-            if !gameState.gameCompleted {
-                ZStack(alignment: .trailing) {
-                    Text(progressHint)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .opacity(gameState.canProgressToNextAct ? 0 : 1)
-
-                    Button("Continue →") { gameState.progressToNextAct() }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .opacity(gameState.canProgressToNextAct ? 1 : 0)
-                        .disabled(!gameState.canProgressToNextAct)
-                }
+            if !gameState.gameCompleted && gameState.canProgressToNextAct {
+                Button("Continue →") { gameState.progressToNextAct() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
             }
         }
         .padding()
-    }
-
-    private var progressHint: String {
-        switch gameState.currentAct {
-        case .interrogation:
-            return "Ask \(max(0, gameState.interrogationCompletionTarget - gameState.unlockedDialogue.count)) more questions"
-        case .investigation:
-            return "Find \(max(0, gameState.investigationCompletionTarget - gameState.realEvidenceCount)) more evidence pieces"
-        case .analysis:
-            return "Complete \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more analyses"
-        case .confrontation:
-            return ""
-        }
     }
 }
 
@@ -257,17 +225,6 @@ struct DebugProgressOverlay: View {
 
     var body: some View {
         HStack {
-            if gameState.currentAct.rawValue > 1 && !gameState.gameCompleted {
-                Button {
-                    if let prev = GameAct(rawValue: gameState.currentAct.rawValue - 1) {
-                        gameState.jumpToAct(prev)
-                    }
-                } label: {
-                    Label("Back", systemImage: "chevron.left")
-                }
-                .buttonStyle(.borderedProminent)
-            }
-
             Spacer()
 
             if !gameState.gameCompleted && gameState.canProgressToNextAct {
