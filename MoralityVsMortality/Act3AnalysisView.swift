@@ -81,6 +81,10 @@ struct CaseBoardView: View {
     @State private var completedAnalyses: [AnalysisResult] = []
     @State private var magnifyingEvidence: Evidence? = nil
     @State private var belongingsStep: BelongingsStep? = nil
+    @State private var showingGuardHint = false
+    @State private var currentGuardHint = ""
+    @State private var didShowInitialGuardHint = false
+    @State private var didShowLicenseGuardHint = false
 
     enum BelongingsStep {
         case bag, wallet, license
@@ -115,7 +119,8 @@ struct CaseBoardView: View {
                                 onTap: {
                                     toggleEvidence(evidence)
                                 },
-                                onReveal: evidenceRevealAction(for: evidence)
+                                onReveal: evidenceRevealAction(for: evidence),
+                                revealButtonTitle: revealButtonTitle(for: evidence)
                             )
                         }
                     }
@@ -328,6 +333,45 @@ struct CaseBoardView: View {
                     .onTapGesture { advanceBelongingsStep() }
                 }
             }
+
+            if showingGuardHint {
+                AnalysisGuardHintView(
+                    hintText: currentGuardHint,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showingGuardHint = false
+                        }
+                    }
+                )
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            } else {
+                Button {
+                    showNextRelevantHint()
+                } label: {
+                    Label("Ask Guard", systemImage: "lightbulb.fill")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            }
+        }
+        .onAppear {
+            showInitialGuardHintIfNeeded()
+        }
+        .onChange(of: gameState.collectedEvidence.count) { _, _ in
+            showLicenseHintIfNeeded()
         }
     }
 
@@ -346,6 +390,16 @@ struct CaseBoardView: View {
         }
         if evidenceImageMap[evidence.name] != nil {
             return { magnifyingEvidence = evidence }
+        }
+        return nil
+    }
+
+    private func revealButtonTitle(for evidence: Evidence) -> String? {
+        if evidence.name == "Wayne's Belongings" && !gameState.hasEvidence(named: "Wayne's License") {
+            return "Open"
+        }
+        if evidenceImageMap[evidence.name] != nil {
+            return nil
         }
         return nil
     }
@@ -432,6 +486,42 @@ struct CaseBoardView: View {
             break
         }
     }
+
+    private func showInitialGuardHintIfNeeded() {
+        guard !didShowInitialGuardHint else { return }
+        didShowInitialGuardHint = true
+        presentGuardHint("Start with the belongings bag I gave you. If Wayne kept anything personal on him, it may tell you more than the paperwork does.")
+    }
+
+    private func showLicenseHintIfNeeded() {
+        guard gameState.hasEvidence(named: "Wayne's License") else { return }
+        guard !didShowLicenseGuardHint else { return }
+        didShowLicenseGuardHint = true
+        presentGuardHint("That license looks off compared to the intake form. Put those two side by side and see what doesn't match.")
+    }
+
+    private func showNextRelevantHint() {
+        if !gameState.hasEvidence(named: "Wayne's License") {
+            presentGuardHint("Try opening Wayne's belongings first. The bag itself isn't the important part.")
+        } else if !hasCompletedLicenseComparison {
+            presentGuardHint("The license and the intake form are telling two different stories. Compare those documents.")
+        } else {
+            presentGuardHint("Look for contradictions in the records, then tie them back to the timeline and medical evidence.")
+        }
+    }
+
+    private func presentGuardHint(_ hint: String) {
+        currentGuardHint = hint
+        withAnimation(.easeInOut(duration: 0.25)) {
+            showingGuardHint = true
+        }
+    }
+
+    private var hasCompletedLicenseComparison: Bool {
+        gameState.analysisResults.values.contains { result in
+            result.contains("Organ Donor") || result.contains("doctored")
+        }
+    }
 }
 
 // evidence board item
@@ -440,6 +530,7 @@ struct EvidenceBoardItem: View {
     let isSelected: Bool
     let onTap: () -> Void
     var onReveal: (() -> Void)?
+    var revealButtonTitle: String?
     @State private var isHovered = false
 
     private var thumbnailName: String? { evidenceImageMap[evidence.name] }
@@ -486,15 +577,26 @@ struct EvidenceBoardItem: View {
             .buttonStyle(.plain)
             .onHover { isHovered = $0 }
 
-            // View button for evidence with images
+            // Secondary action for evidence that can be opened or viewed
             if let onReveal = onReveal {
                 Button(action: onReveal) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.7))
-                        .padding(6)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(4)
+                    if let revealButtonTitle {
+                        Text(revealButtonTitle)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.blue.opacity(0.65))
+                            .cornerRadius(4)
+                    } else {
+                        Image(systemName: "magnifyingglass")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
+                            .padding(6)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(4)
+                    }
                 }
                 .buttonStyle(.plain)
             }
@@ -507,6 +609,55 @@ struct AnalysisResult: Identifiable {
     let id = UUID()
     let evidence: Evidence
     let tool: AnalysisTool
+}
+
+struct AnalysisGuardHintView: View {
+    let hintText: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 16) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Jason Perry")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white.opacity(0.7))
+
+                Text(hintText)
+                    .font(.title3)
+                    .foregroundColor(.white)
+                    .lineSpacing(8)
+
+                HStack {
+                    Spacer()
+                    Button("Got it") {
+                        onDismiss()
+                    }
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(8)
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(22)
+            .frame(maxWidth: 580)
+            .background(Color.black.opacity(0.88))
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+
+            Image("prisonGuard")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 180, height: 260)
+        }
+    }
 }
 
 // magnify overlay

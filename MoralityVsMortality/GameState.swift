@@ -5,7 +5,7 @@ import Combine
 class GameState: ObservableObject {
     private let totalInterrogationDialogueCount = 17
     private let totalInvestigationEvidenceCount = 6
-    private let totalAnalysisResultCount = 7
+    private let totalAnalysisResultCount = 5
 
     // Player (persisted via AppStorage in views, synced here)
     @Published var playerName: String = UserDefaults.standard.string(forKey: "playerName") ?? ""
