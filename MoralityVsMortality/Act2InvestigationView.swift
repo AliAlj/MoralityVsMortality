@@ -109,7 +109,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Sedation Chart",
                 description: "A chart clipped to the bed frame",
-                position: CGPoint(x: 512, y: 252),
+                position: CGPoint(x: 512, y: 258),
                 size: CGSize(width: 80, height: 60),
                 imageName: "sedationClipboard",
                 evidence: Evidence(
@@ -124,7 +124,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Vital Monitor",
                 description: "The bedside vital signs monitor with a printout",
-                position: CGPoint(x: 90, y: 205),
+                position: CGPoint(x: 90, y: 215),
                 size: CGSize(width: 160, height: 160),
                 imageName: "healthMonitor",
                 evidence: Evidence(
@@ -144,7 +144,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Crumbled Paper",
                 description: "A crumbled piece of paper tucked under the bed",
-                position: CGPoint(x: 300, y: 320),
+                position: CGPoint(x: 300, y: 330),
                 size: CGSize(width: 40, height: 35),
                 imageName: "crumbledPaper",
                 evidence: Evidence(

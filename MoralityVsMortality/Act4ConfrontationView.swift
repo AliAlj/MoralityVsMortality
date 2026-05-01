@@ -589,7 +589,7 @@ struct SurgeonConfrontationView: View {
             [
                 ConfrontationQuestion(
                     questionText: "You killed him.",
-                    responseText: "I saved five."
+                    responseText: "I saved five lives."
                 )
             ],
             // Phase 14: Final
