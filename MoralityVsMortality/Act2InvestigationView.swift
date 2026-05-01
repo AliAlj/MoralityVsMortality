@@ -182,6 +182,7 @@ struct Act2SceneInvestigationView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+
                 // Room background
                 RoomBackgroundView(room: viewModel.currentRoom)
                     .allowsHitTesting(false)
@@ -246,6 +247,8 @@ struct Act2SceneInvestigationView: View {
                         buttonText: "Continue"
                     ) {
                         viewModel.dismissFormReveal()
+                        gameState.guardIntroCompleted = true
+                        gameState.saveGame()
 
                         Task { @MainActor in
                             await Task.yield()
@@ -256,6 +259,12 @@ struct Act2SceneInvestigationView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
+            .onAppear {
+                if gameState.guardIntroCompleted {
+                    viewModel.showingGuard = false
+                    viewModel.guardItemsGiven = true
+                }
+            }
         }
     }
 }

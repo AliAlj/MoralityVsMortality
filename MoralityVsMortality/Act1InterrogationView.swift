@@ -74,6 +74,20 @@ class Act1ViewModel: ObservableObject {
         guard !hasSetRealGameState else { return }
         hasSetRealGameState = true
         gameState = state
+
+        // Restore progress from GameState
+        completedStages = state.completedInterrogationStages
+        if !completedStages.isEmpty {
+            // Find the first incomplete stage, or stay on the last if all done
+            let nextIncomplete = InterrogationStage.allCases.first { !completedStages.contains($0.rawValue) }
+            if let stage = nextIncomplete {
+                loadStage(stage)
+            } else {
+                // All stages completed — show the last stage as complete
+                loadStage(.surgeon)
+                stageComplete = true
+            }
+        }
     }
 
     func loadStage(_ stage: InterrogationStage) {
@@ -90,6 +104,8 @@ class Act1ViewModel: ObservableObject {
 
     func advanceToNextStage() {
         completedStages.insert(currentStage.rawValue)
+        gameState.completedInterrogationStages = completedStages
+        gameState.saveGame()
         if let next = InterrogationStage(rawValue: currentStage.rawValue + 1) {
             loadStage(next)
         }
@@ -140,6 +156,9 @@ class Act1ViewModel: ObservableObject {
         currentQuestionIndex += 1
         if currentQuestionIndex >= availableQuestions.count {
             stageComplete = true
+            completedStages.insert(currentStage.rawValue)
+            gameState.completedInterrogationStages = completedStages
+            gameState.saveGame()
         }
     }
 

@@ -6,31 +6,47 @@ struct Act4ConfrontationView: View {
     @State private var phase: Act4Phase = .receptionistConfrontation
 
     var body: some View {
-        switch phase {
-        case .receptionistConfrontation:
-            ReceptionistConfrontationView(onComplete: {
-                withAnimation { phase = .kathyFinal }
-            })
-            .environmentObject(gameState)
-        case .kathyFinal:
-            KathyFinalView(onComplete: {
-                withAnimation { phase = .surgeonConfrontation }
-            })
-            .environmentObject(gameState)
-        case .surgeonConfrontation:
-            SurgeonConfrontationView(onComplete: {
-                withAnimation { phase = .finalChoice }
-            })
-            .environmentObject(gameState)
-        case .finalChoice:
-            FinalChoiceView()
+        Group {
+            switch phase {
+            case .receptionistConfrontation:
+                ReceptionistConfrontationView(onComplete: {
+                    withAnimation { setPhase(.kathyFinal) }
+                })
                 .environmentObject(gameState)
+            case .kathyFinal:
+                KathyFinalView(onComplete: {
+                    withAnimation { setPhase(.surgeonConfrontation) }
+                })
+                .environmentObject(gameState)
+            case .surgeonConfrontation:
+                SurgeonConfrontationView(onComplete: {
+                    withAnimation { setPhase(.finalChoice) }
+                })
+                .environmentObject(gameState)
+            case .finalChoice:
+                FinalChoiceView()
+                    .environmentObject(gameState)
+            }
         }
+        .onAppear {
+            if let saved = Act4Phase(rawValue: gameState.act4PhaseIndex) {
+                phase = saved
+            }
+        }
+    }
+
+    private func setPhase(_ newPhase: Act4Phase) {
+        phase = newPhase
+        gameState.act4PhaseIndex = newPhase.rawValue
+        gameState.saveGame()
     }
 }
 
-enum Act4Phase {
-    case receptionistConfrontation, kathyFinal, surgeonConfrontation, finalChoice
+enum Act4Phase: Int, CaseIterable {
+    case receptionistConfrontation = 0
+    case kathyFinal = 1
+    case surgeonConfrontation = 2
+    case finalChoice = 3
 }
 
 // Receptionist Confrontation

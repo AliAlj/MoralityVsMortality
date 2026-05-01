@@ -21,6 +21,11 @@ class GameState: ObservableObject {
     var searchedAreas: Set<String> = []
     @Published var analysisResults: [String: String] = [:]
 
+    // Act-specific progress tracking
+    @Published var completedInterrogationStages: Set<Int> = []
+    @Published var guardIntroCompleted: Bool = false
+    @Published var act4PhaseIndex: Int = 0
+
     //  Computed
     var realEvidenceCount: Int   { collectedEvidence.filter(\.isRealEvidence).count }
     var totalEvidenceFound: Int  { collectedEvidence.count }
@@ -37,25 +42,32 @@ class GameState: ObservableObject {
         }
     }
 
+    private static let saveKey = "gameSaveData"
+
     //  Init
-    init() { }
+    init() {
+        loadGame()
+    }
 
     //  Evidence
     func addEvidence(_ evidence: Evidence) {
         guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
         collectedEvidence.append(evidence)
+        saveGame()
     }
 
     func addMultipleEvidence(_ items: [Evidence]) {
         let new = items.filter { item in !collectedEvidence.contains(where: { $0.name == item.name }) }
         guard !new.isEmpty else { return }
         collectedEvidence.append(contentsOf: new)
+        saveGame()
     }
 
     func collectEvidenceFromArea(_ evidence: Evidence, areaName: String) {
         searchedAreas.insert(areaName)
         guard !collectedEvidence.contains(where: { $0.name == evidence.name }) else { return }
         collectedEvidence.append(evidence)
+        saveGame()
     }
 
     func hasEvidence(named name: String) -> Bool {
@@ -66,14 +78,18 @@ class GameState: ObservableObject {
         collectedEvidence.first { $0.id == id }
     }
 
-    // Areas (Act 1)
-    func markAreaAsSearched(_ name: String) { searchedAreas.insert(name) }
+    // Areas
+    func markAreaAsSearched(_ name: String) {
+        searchedAreas.insert(name)
+        saveGame()
+    }
     func isAreaSearched(_ name: String) -> Bool { searchedAreas.contains(name) }
 
     // Dialogue (Act 2)
     func unlockDialogueNode(_ node: DialogueNode) {
         guard !unlockedDialogue.contains(where: { $0.id == node.id }) else { return }
         unlockedDialogue.append(node)
+        saveGame()
     }
 
     //  Analysis (Act 3)
@@ -82,6 +98,7 @@ class GameState: ObservableObject {
         let result = getAnalysisResult(evidence: evidence, tool: tool)
         guard !result.isEmpty else { return nil }
         analysisResults[evidenceID.uuidString] = result
+        saveGame()
         return result
     }
 
@@ -90,13 +107,18 @@ class GameState: ObservableObject {
         guard canProgressToNextAct else { return }
         if let next = GameAct(rawValue: currentAct.rawValue + 1) {
             currentAct = next
+            saveGame()
         }
     }
 
-    func jumpToAct(_ act: GameAct) { currentAct = act }
+    func jumpToAct(_ act: GameAct) {
+        currentAct = act
+        saveGame()
+    }
 
     func completeGame() {
         gameCompleted = true
+        saveGame()
     }
 
     func resetGame() {
@@ -105,7 +127,45 @@ class GameState: ObservableObject {
         searchedAreas.removeAll()
         unlockedDialogue.removeAll()
         analysisResults.removeAll()
+        completedInterrogationStages.removeAll()
+        guardIntroCompleted = false
+        act4PhaseIndex = 0
         gameCompleted = false
+        saveGame()
+    }
+
+    // MARK: - Persistence
+
+    func saveGame() {
+        let save = GameSaveData(
+            currentActRaw: currentAct.rawValue,
+            collectedEvidence: collectedEvidence,
+            unlockedDialogue: unlockedDialogue,
+            gameCompleted: gameCompleted,
+            searchedAreas: Array(searchedAreas),
+            analysisResults: analysisResults,
+            completedInterrogationStages: Array(completedInterrogationStages),
+            guardIntroCompleted: guardIntroCompleted,
+            act4PhaseIndex: act4PhaseIndex
+        )
+        if let data = try? JSONEncoder().encode(save) {
+            UserDefaults.standard.set(data, forKey: Self.saveKey)
+        }
+    }
+
+    private func loadGame() {
+        guard let data = UserDefaults.standard.data(forKey: Self.saveKey),
+              let save = try? JSONDecoder().decode(GameSaveData.self, from: data) else { return }
+
+        currentAct = GameAct(rawValue: save.currentActRaw) ?? .interrogation
+        collectedEvidence = save.collectedEvidence
+        unlockedDialogue = save.unlockedDialogue
+        gameCompleted = save.gameCompleted
+        searchedAreas = Set(save.searchedAreas)
+        analysisResults = save.analysisResults
+        completedInterrogationStages = Set(save.completedInterrogationStages)
+        guardIntroCompleted = save.guardIntroCompleted
+        act4PhaseIndex = save.act4PhaseIndex
     }
 
     // Private
@@ -141,4 +201,17 @@ class GameState: ObservableObject {
         ]
         return combinations[evidence.name]?[tool] ?? ""
     }
+}
+
+// Codable save data
+struct GameSaveData: Codable {
+    let currentActRaw: Int
+    let collectedEvidence: [Evidence]
+    let unlockedDialogue: [DialogueNode]
+    let gameCompleted: Bool
+    let searchedAreas: [String]
+    let analysisResults: [String: String]
+    let completedInterrogationStages: [Int]
+    let guardIntroCompleted: Bool
+    let act4PhaseIndex: Int
 }
