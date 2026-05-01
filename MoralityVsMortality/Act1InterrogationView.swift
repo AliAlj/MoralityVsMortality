@@ -407,10 +407,11 @@ struct Act1InterrogationMainView: View {
                             viewModel.askCurrentQuestion()
                         } label: {
                             Text(question.questionText)
-                                .font(.body)
+                                .font(.title3)
                                 .foregroundColor(.white)
-                                .padding(14)
+                                .padding(18)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(minHeight: 88, alignment: .leading)
                                 .background(Color.white.opacity(0.08))
                                 .cornerRadius(8)
                                 .overlay(

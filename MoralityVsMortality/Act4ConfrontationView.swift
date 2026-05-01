@@ -64,7 +64,7 @@ struct ReceptionistConfrontationView: View {
 
             VStack(spacing: 0) {
                 HStack {
-                    Image("prisonReceptionist")
+                    Image("hospitalReceptionist")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 52, height: 52)
@@ -74,6 +74,9 @@ struct ReceptionistConfrontationView: View {
                         Text("Hilarie Jones, Second Interrogation")
                             .font(.headline)
                             .foregroundColor(.white)
+                        Text("Receptionist")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.75))
                         Text("Confronting the Time Log entries")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
@@ -91,7 +94,7 @@ struct ReceptionistConfrontationView: View {
                                 ConversationBubbleView(
                                     entry: entry,
                                     playerImage: gameState.selectedDetective,
-                                    suspectImage: "prisonReceptionist",
+                                    suspectImage: "hospitalReceptionist",
                                     suspectName: "Hilarie Jones",
                                     playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                                 )
@@ -125,10 +128,11 @@ struct ReceptionistConfrontationView: View {
                                 askQuestion(question)
                             } label: {
                                 Text(question.questionText)
-                                    .font(.body)
+                                    .font(.title3)
                                     .foregroundColor(.white)
-                                    .padding(12)
+                                    .padding(18)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(minHeight: 88, alignment: .leading)
                                     .background(Color.white.opacity(0.08))
                                     .cornerRadius(8)
                                     .overlay(
@@ -244,6 +248,9 @@ struct KathyFinalView: View {
                         Text("Kathy Williams, Final Interrogation")
                             .font(.headline)
                             .foregroundColor(.white)
+                        Text("Nurse")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.75))
                         Text("Triggered by Love Letter and vital evidence")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
@@ -295,10 +302,11 @@ struct KathyFinalView: View {
                                 askQuestion(question)
                             } label: {
                                 Text(question.questionText)
-                                    .font(.body)
+                                    .font(.title3)
                                     .foregroundColor(.white)
-                                    .padding(12)
+                                    .padding(18)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(minHeight: 88, alignment: .leading)
                                     .background(Color.white.opacity(0.08))
                                     .cornerRadius(8)
                                     .overlay(
@@ -414,6 +422,9 @@ struct SurgeonConfrontationView: View {
                         Text("Dr. Victor Smith, Confrontation")
                             .font(.headline)
                             .foregroundColor(.white)
+                        Text("Attending Surgeon")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.75))
                         Text("The truth comes out")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
@@ -465,10 +476,11 @@ struct SurgeonConfrontationView: View {
                                 askSurgeonQuestion(question)
                             } label: {
                                 Text(question.questionText)
-                                    .font(.body)
+                                    .font(.title3)
                                     .foregroundColor(.white)
-                                    .padding(12)
+                                    .padding(18)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(minHeight: 88, alignment: .leading)
                                     .background(Color.white.opacity(0.08))
                                     .cornerRadius(8)
                                     .overlay(
