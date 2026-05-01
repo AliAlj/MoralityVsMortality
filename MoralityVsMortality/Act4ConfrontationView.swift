@@ -43,82 +43,86 @@ struct ReceptionistConfrontationView: View {
     @State private var questionPhase = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Image("prisonReceptionist")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 45, height: 45)
-                    .clipShape(Circle())
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-                VStack(alignment: .leading) {
-                    Text("Hilarie Jones, Second Interrogation")
-                        .font(.headline)
-                    Text("Confronting the Time Log entries")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            VStack(spacing: 0) {
+                HStack {
+                    Image("prisonReceptionist")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 52, height: 52)
+                        .clipShape(Circle())
 
-                Spacer()
-            }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-
-            // Conversation
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(conversationHistory) { entry in
-                            ConversationBubbleView(
-                                entry: entry,
-                                playerImage: gameState.selectedDetective,
-                                suspectImage: "prisonReceptionist",
-                                suspectName: "Hilarie Jones",
-                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
-                            )
-                            .id(entry.id)
-                        }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Hilarie Jones, Second Interrogation")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text("Confronting the Time Log entries")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
                     }
-                    .padding()
-                }
-                .onChange(of: conversationHistory.count) { _ in
-                    if let last = conversationHistory.last {
-                        withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
-                    }
-                }
-            }
 
-            // Question choices
-            VStack(spacing: 8) {
-                if currentQuestions.isEmpty && questionPhase >= receptionistPhases.count {
-                    Button("Proceed to Kathy Williams") {
-                        onComplete()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .padding()
-                } else {
-                    ForEach(currentQuestions) { question in
-                        Button {
-                            askQuestion(question)
-                        } label: {
-                            Text(question.questionText)
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                                .padding(10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    Spacer()
+                }
+                .padding()
+                .background(Color.white.opacity(0.06))
+
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(conversationHistory) { entry in
+                                ConversationBubbleView(
+                                    entry: entry,
+                                    playerImage: gameState.selectedDetective,
+                                    suspectImage: "prisonReceptionist",
+                                    suspectName: "Hilarie Jones",
+                                    playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                                 )
+                                .id(entry.id)
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .padding()
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
+                    .background(Color.black)
+                    .onChange(of: conversationHistory.count) { _ in
+                        if let last = conversationHistory.last {
+                            withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                        }
+                    }
                 }
+
+                VStack(spacing: 8) {
+                    if currentQuestions.isEmpty && questionPhase >= receptionistPhases.count {
+                        Button("Proceed to Kathy Williams") {
+                            onComplete()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    } else {
+                        ForEach(currentQuestions) { question in
+                            Button {
+                                askQuestion(question)
+                            } label: {
+                                Text(question.questionText)
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.white.opacity(0.06))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                    }
+                }
+                .background(Color.white.opacity(0.04))
             }
         }
         .onAppear {
@@ -203,82 +207,86 @@ struct KathyFinalView: View {
     @State private var questionPhase = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Image("prisonNurse")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 45, height: 45)
-                    .clipShape(Circle())
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-                VStack(alignment: .leading) {
-                    Text("Kathy Williams, Final Interrogation")
-                        .font(.headline)
-                    Text("Triggered by Love Letter and vital evidence")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            VStack(spacing: 0) {
+                HStack {
+                    Image("prisonNurse")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 52, height: 52)
+                        .clipShape(Circle())
 
-                Spacer()
-            }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-
-            // Conversation
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(conversationHistory) { entry in
-                            ConversationBubbleView(
-                                entry: entry,
-                                playerImage: gameState.selectedDetective,
-                                suspectImage: "prisonNurse",
-                                suspectName: "Kathy Williams",
-                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
-                            )
-                            .id(entry.id)
-                        }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Kathy Williams, Final Interrogation")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text("Triggered by Love Letter and vital evidence")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
                     }
-                    .padding()
-                }
-                .onChange(of: conversationHistory.count) { _ in
-                    if let last = conversationHistory.last {
-                        withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
-                    }
-                }
-            }
 
-            // Question choices
-            VStack(spacing: 8) {
-                if currentQuestions.isEmpty && questionPhase >= kathyPhases.count {
-                    Button("Proceed to Dr. Victor Smith") {
-                        onComplete()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .padding()
-                } else {
-                    ForEach(currentQuestions) { question in
-                        Button {
-                            askQuestion(question)
-                        } label: {
-                            Text(question.questionText)
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                                .padding(10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    Spacer()
+                }
+                .padding()
+                .background(Color.white.opacity(0.06))
+
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(conversationHistory) { entry in
+                                ConversationBubbleView(
+                                    entry: entry,
+                                    playerImage: gameState.selectedDetective,
+                                    suspectImage: "prisonNurse",
+                                    suspectName: "Kathy Williams",
+                                    playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                                 )
+                                .id(entry.id)
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .padding()
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
+                    .background(Color.black)
+                    .onChange(of: conversationHistory.count) { _ in
+                        if let last = conversationHistory.last {
+                            withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                        }
+                    }
                 }
+
+                VStack(spacing: 8) {
+                    if currentQuestions.isEmpty && questionPhase >= kathyPhases.count {
+                        Button("Proceed to Dr. Victor Smith") {
+                            onComplete()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    } else {
+                        ForEach(currentQuestions) { question in
+                            Button {
+                                askQuestion(question)
+                            } label: {
+                                Text(question.questionText)
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.white.opacity(0.06))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                    }
+                }
+                .background(Color.white.opacity(0.04))
             }
         }
         .onAppear {
@@ -363,82 +371,86 @@ struct SurgeonConfrontationView: View {
     @State private var questionPhase = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Image("prisonSurgeon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 45, height: 45)
-                    .clipShape(Circle())
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-                VStack(alignment: .leading) {
-                    Text("Dr. Victor Smith, Confrontation")
-                        .font(.headline)
-                    Text("The truth comes out")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            VStack(spacing: 0) {
+                HStack {
+                    Image("prisonSurgeon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 52, height: 52)
+                        .clipShape(Circle())
 
-                Spacer()
-            }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-
-            // Conversation
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
-                        ForEach(conversationHistory) { entry in
-                            ConversationBubbleView(
-                                entry: entry,
-                                playerImage: gameState.selectedDetective,
-                                suspectImage: "prisonSurgeon",
-                                suspectName: "Dr. Victor Smith",
-                                playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
-                            )
-                            .id(entry.id)
-                        }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Dr. Victor Smith, Confrontation")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text("The truth comes out")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
                     }
-                    .padding()
-                }
-                .onChange(of: conversationHistory.count) { _ in
-                    if let last = conversationHistory.last {
-                        withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
-                    }
-                }
-            }
 
-            // Question choices
-            VStack(spacing: 8) {
-                if currentQuestions.isEmpty && questionPhase >= surgeonPhases.count {
-                    Button("Make Your Final Decision") {
-                        onComplete()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .padding()
-                } else {
-                    ForEach(currentQuestions) { question in
-                        Button {
-                            askSurgeonQuestion(question)
-                        } label: {
-                            Text(question.questionText)
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                                .padding(10)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    Spacer()
+                }
+                .padding()
+                .background(Color.white.opacity(0.06))
+
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 12) {
+                            ForEach(conversationHistory) { entry in
+                                ConversationBubbleView(
+                                    entry: entry,
+                                    playerImage: gameState.selectedDetective,
+                                    suspectImage: "prisonSurgeon",
+                                    suspectName: "Dr. Victor Smith",
+                                    playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
                                 )
+                                .id(entry.id)
+                            }
                         }
-                        .buttonStyle(.plain)
+                        .padding()
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
+                    .background(Color.black)
+                    .onChange(of: conversationHistory.count) { _ in
+                        if let last = conversationHistory.last {
+                            withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                        }
+                    }
                 }
+
+                VStack(spacing: 8) {
+                    if currentQuestions.isEmpty && questionPhase >= surgeonPhases.count {
+                        Button("Make Your Final Decision") {
+                            onComplete()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    } else {
+                        ForEach(currentQuestions) { question in
+                            Button {
+                                askSurgeonQuestion(question)
+                            } label: {
+                                Text(question.questionText)
+                                    .font(.body)
+                                    .foregroundColor(.white)
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.white.opacity(0.06))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                    }
+                }
+                .background(Color.white.opacity(0.04))
             }
         }
         .onAppear {

@@ -3,7 +3,9 @@ import Combine
 
 @MainActor
 class GameState: ObservableObject {
+    private let totalInterrogationDialogueCount = 17
     private let totalInvestigationEvidenceCount = 6
+    private let totalAnalysisResultCount = 7
 
     // Player (persisted via AppStorage in views, synced here)
     @Published var playerName: String = UserDefaults.standard.string(forKey: "playerName") ?? ""
@@ -22,12 +24,15 @@ class GameState: ObservableObject {
     //  Computed
     var realEvidenceCount: Int   { collectedEvidence.filter(\.isRealEvidence).count }
     var totalEvidenceFound: Int  { collectedEvidence.count }
+    var interrogationCompletionTarget: Int { totalInterrogationDialogueCount }
+    var investigationCompletionTarget: Int { totalInvestigationEvidenceCount }
+    var analysisCompletionTarget: Int { totalAnalysisResultCount }
 
     var canProgressToNextAct: Bool {
         switch currentAct {
-        case .interrogation:  return unlockedDialogue.count >= 2
+        case .interrogation:  return unlockedDialogue.count >= totalInterrogationDialogueCount
         case .investigation:  return realEvidenceCount >= totalInvestigationEvidenceCount
-        case .analysis:       return analysisResults.count >= 3
+        case .analysis:       return analysisResults.count >= totalAnalysisResultCount
         case .confrontation:  return false  // ends game
         }
     }

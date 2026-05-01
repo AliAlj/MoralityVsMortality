@@ -109,7 +109,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Sedation Chart",
                 description: "A chart clipped to the bed frame",
-                position: CGPoint(x: 590, y: 245),
+                position: CGPoint(x: 512, y: 252),
                 size: CGSize(width: 80, height: 60),
                 imageName: "sedationClipboard",
                 evidence: Evidence(
@@ -124,9 +124,9 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Vital Monitor",
                 description: "The bedside vital signs monitor with a printout",
-                position: CGPoint(x: 90, y: 180),
-                size: CGSize(width: 80, height: 80),
-                imageName: "vitalMonitor",
+                position: CGPoint(x: 90, y: 205),
+                size: CGSize(width: 160, height: 160),
+                imageName: "healthMonitor",
                 evidence: Evidence(
                     name: "Vital Monitor Printout",
                     description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 3:00 AM. He was alive when found.",
@@ -144,7 +144,7 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Crumbled Paper",
                 description: "A crumbled piece of paper tucked under the bed",
-                position: CGPoint(x: 300, y: 380),
+                position: CGPoint(x: 300, y: 320),
                 size: CGSize(width: 40, height: 35),
                 imageName: "crumbledPaper",
                 evidence: Evidence(
@@ -519,5 +519,5 @@ struct GuardDialogueView: View {
 #Preview {
     Act2InvestigationView()
         .environmentObject(GameState())
-        .frame(width: 800, height: 600)
+        //.frame(width: 800, height: 600)
 }

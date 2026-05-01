@@ -235,13 +235,13 @@ struct CaseBoardView: View {
                     VStack(spacing: 8) {
                         HStack {
                             Text("Analyses: \(gameState.analysisResults.count)")
-                            if gameState.analysisResults.count >= 3 {
+                            if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
                                 Text("Ready to continue")
                                     .foregroundColor(.green)
                             } else {
-                                Text("Need \(max(0, 3 - gameState.analysisResults.count)) more")
+                                Text("Need \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more")
                                     .foregroundColor(.orange)
                             }
                         }

@@ -33,6 +33,14 @@ struct ContentView: View {
                     }
                 }
             }
+
+            #if DEBUG
+            if !showingActCard {
+                DebugProgressOverlay()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .zIndex(999)
+            }
+            #endif
         }
         .onChange(of: gameState.currentAct) { _, newAct in
             if newAct != lastAct {
@@ -232,16 +240,49 @@ struct BottomNavigationView: View {
     private var progressHint: String {
         switch gameState.currentAct {
         case .interrogation:
-            return "Unlock \(max(0, 2 - gameState.unlockedDialogue.count)) more dialogue branches"
+            return "Ask \(max(0, gameState.interrogationCompletionTarget - gameState.unlockedDialogue.count)) more questions"
         case .investigation:
-            return "Find \(max(0, 6 - gameState.realEvidenceCount)) more evidence pieces"
+            return "Find \(max(0, gameState.investigationCompletionTarget - gameState.realEvidenceCount)) more evidence pieces"
         case .analysis:
-            return "Complete \(max(0, 3 - gameState.analysisResults.count)) more analyses"
+            return "Complete \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more analyses"
         case .confrontation:
             return ""
         }
     }
 }
+
+#if DEBUG
+struct DebugProgressOverlay: View {
+    @EnvironmentObject var gameState: GameState
+
+    var body: some View {
+        HStack {
+            if gameState.currentAct.rawValue > 1 && !gameState.gameCompleted {
+                Button {
+                    if let prev = GameAct(rawValue: gameState.currentAct.rawValue - 1) {
+                        gameState.jumpToAct(prev)
+                    }
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+
+            Spacer()
+
+            if !gameState.gameCompleted && gameState.canProgressToNextAct {
+                Button("Continue →") {
+                    gameState.progressToNextAct()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+    }
+}
+#endif
 
 #Preview {
     ContentView().environmentObject(GameState())
