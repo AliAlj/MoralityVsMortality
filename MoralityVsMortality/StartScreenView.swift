@@ -6,7 +6,7 @@ struct StartScreenView: View {
     @AppStorage("playerName") private var savedName = ""
     @Binding var screen: AppScreen
     @State private var showNewGameConfirm = false
-    private let buttonYOffset: CGFloat = 50
+    private let buttonYOffset: CGFloat = 35
 
     private var hasCompletedSetup: Bool {
         hasSeenIntro && !savedName.isEmpty
