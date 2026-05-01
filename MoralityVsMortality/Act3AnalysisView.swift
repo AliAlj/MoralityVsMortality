@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Act 3: Wrapper View
+// act 3 wrapper view
 struct Act3AnalysisView: View {
     @EnvironmentObject private var gameState: GameState
     @State private var lightsOn = false
@@ -98,7 +98,7 @@ struct Act3AnalysisView: View {
     }
 }
 
-// MARK: - Case Board View
+// case board view
 struct CaseBoardView: View {
     @EnvironmentObject private var gameState: GameState
     @Binding var showBoard: Bool
@@ -462,7 +462,7 @@ struct CaseBoardView: View {
     }
 }
 
-// MARK: - Evidence Board Item
+// evidence board item
 struct EvidenceBoardItem: View {
     let evidence: Evidence
     let isSelected: Bool
@@ -530,14 +530,14 @@ struct EvidenceBoardItem: View {
     }
 }
 
-// MARK: - Supporting Models
+// supporting models
 struct AnalysisResult: Identifiable {
     let id = UUID()
     let evidence: Evidence
     let tool: AnalysisTool
 }
 
-// MARK: - Magnify Overlay
+// magnify overlay
 struct MagnifyOverlay: View {
     let evidenceName: String
     let imageName: String
@@ -672,7 +672,7 @@ class ScrollDetectorView: NSView {
     }
 }
 
-// MARK: - Office Bulletin Button
+// Office Bulletin Button
 struct OfficeBulletinButton: View {
     let onTap: () -> Void
     @State private var isHovered = false

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Act 4: Wrapper View
+// wrapper view
 struct Act4ConfrontationView: View {
     @EnvironmentObject private var gameState: GameState
     @State private var phase: Act4Phase = .receptionistConfrontation
@@ -33,7 +33,7 @@ enum Act4Phase {
     case receptionistConfrontation, kathyFinal, surgeonConfrontation, finalChoice
 }
 
-// MARK: - Receptionist Confrontation
+// Receptionist Confrontation
 struct ReceptionistConfrontationView: View {
     @EnvironmentObject private var gameState: GameState
     let onComplete: () -> Void
@@ -193,7 +193,7 @@ struct ReceptionistConfrontationView: View {
     }
 }
 
-// MARK: - Kathy Final Interrogation
+// Kathy Final Interrogation
 struct KathyFinalView: View {
     @EnvironmentObject private var gameState: GameState
     let onComplete: () -> Void
@@ -579,7 +579,7 @@ struct ConfrontationQuestion: Identifiable {
     let responseText: String
 }
 
-// MARK: - Final Choice
+// Final Choice made by the player
 struct FinalChoiceView: View {
     @EnvironmentObject private var gameState: GameState
     @State private var selectedChoice: FinalPlayerChoice?
