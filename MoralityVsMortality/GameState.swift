@@ -3,6 +3,8 @@ import Combine
 
 @MainActor
 class GameState: ObservableObject {
+    // Must match the total number of questions across all 4 interrogation stages
+    // Kathy: 6, Receptionist: 3, Morgue: 4, Surgeon: 4 = 17
     private let totalInterrogationDialogueCount = 17
     private let totalInvestigationEvidenceCount = 6
     private let totalAnalysisResultCount = 5
@@ -87,7 +89,7 @@ class GameState: ObservableObject {
 
     // Dialogue (Act 2)
     func unlockDialogueNode(_ node: DialogueNode) {
-        guard !unlockedDialogue.contains(where: { $0.id == node.id }) else { return }
+        guard !unlockedDialogue.contains(where: { $0.questionText == node.questionText }) else { return }
         unlockedDialogue.append(node)
         saveGame()
     }

@@ -3,8 +3,10 @@ import Combine
 
 // wrapper view
 struct Act1InterrogationView: View {
+    @EnvironmentObject private var gameState: GameState
+
     var body: some View {
-        Act1InterrogationMainView()
+        Act1InterrogationMainView(gameState: gameState)
     }
 }
 
@@ -62,21 +64,12 @@ class Act1ViewModel: ObservableObject {
     @Published var stageComplete = false
     @Published var completedStages: Set<Int> = []
 
-    var gameState: GameState
-    private var hasSetRealGameState = false
+    let gameState: GameState
 
     init(gameState: GameState) {
         self.gameState = gameState
         loadStage(.kathy)
-    }
-
-    func setGameState(_ state: GameState) {
-        guard !hasSetRealGameState else { return }
-        hasSetRealGameState = true
-        gameState = state
-
-        // Restore progress from GameState
-        completedStages = state.completedInterrogationStages
+        completedStages = gameState.completedInterrogationStages
         if !completedStages.isEmpty {
             // Find the first incomplete stage, or stay on the last if all done
             let nextIncomplete = InterrogationStage.allCases.first { !completedStages.contains($0.rawValue) }
@@ -287,11 +280,10 @@ struct InterrogationQuestion: Identifiable {
 
 // main view
 struct Act1InterrogationMainView: View {
-    @EnvironmentObject private var gameState: GameState
     @StateObject private var viewModel: Act1ViewModel
 
-    init() {
-        self._viewModel = StateObject(wrappedValue: Act1ViewModel(gameState: GameState()))
+    init(gameState: GameState) {
+        self._viewModel = StateObject(wrappedValue: Act1ViewModel(gameState: gameState))
     }
 
     var body: some View {
@@ -360,10 +352,10 @@ struct Act1InterrogationMainView: View {
                             ForEach(viewModel.conversationHistory) { entry in
                                 ConversationBubbleView(
                                     entry: entry,
-                                    playerImage: gameState.selectedDetective,
+                                    playerImage: viewModel.gameState.selectedDetective,
                                     suspectImage: viewModel.currentStage.portraitImage,
                                     suspectName: viewModel.currentStage.suspectName,
-                                    playerName: gameState.playerName.isEmpty ? "You" : gameState.playerName
+                                    playerName: viewModel.gameState.playerName.isEmpty ? "You" : viewModel.gameState.playerName
                                 )
                                 .id(entry.id)
                             }
@@ -429,9 +421,6 @@ struct Act1InterrogationMainView: View {
                 .layoutPriority(1)
             }
         }
-        .onAppear {
-            viewModel.setGameState(gameState)
-        }
     }
 
     private func stageColor(_ stage: InterrogationStage) -> Color {
@@ -496,6 +485,6 @@ struct ConversationBubbleView: View {
 }
 
 #Preview {
-    Act1InterrogationMainView()
+    Act1InterrogationView()
         .environmentObject(GameState())
 }
