@@ -150,59 +150,126 @@ struct CaseBoardView: View {
 
                     Spacer()
 
-                    // Selected evidence display
+                    // Selected evidence display as image cards
                     if !selectedEvidence.isEmpty {
-                        HStack(spacing: 12) {
-                            ForEach(selectedEvidence) { ev in
-                                Text(ev.name)
-                                    .font(.caption)
-                                    .foregroundColor(.white)
+                        VStack(spacing: 12) {
+                            HStack(spacing: 0) {
+                                ForEach(Array(selectedEvidence.enumerated()), id: \.element.id) { index, ev in
+                                    if index > 0 {
+                                        // Connection indicator between cards
+                                        VStack(spacing: 4) {
+                                            if let tool = selectedTool {
+                                                Image(systemName: tool.icon)
+                                                    .font(.title3)
+                                                    .foregroundColor(.blue)
+                                            }
+                                            Rectangle()
+                                                .fill(Color.blue.opacity(0.5))
+                                                .frame(width: 40, height: 2)
+                                        }
+                                        .padding(.horizontal, 8)
+                                    }
+
+                                    // Evidence card
+                                    VStack(spacing: 6) {
+                                        if let imageName = evidenceImageMap[ev.name] {
+                                            Image(imageName)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 120, height: 80)
+                                                .clipped()
+                                                .cornerRadius(8)
+                                        }
+                                        Text(ev.name)
+                                            .font(.caption)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.white)
+                                    }
                                     .padding(8)
-                                    .background(Color.blue.opacity(0.4))
-                                    .cornerRadius(6)
+                                    .background(Color.blue.opacity(0.25))
+                                    .cornerRadius(10)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.blue.opacity(0.6), lineWidth: 1)
+                                    )
+                                }
                             }
 
                             if selectedTool != nil {
-                                Button("Analyze") {
-                                    performAnalysis()
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        performAnalysis()
+                                    }
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "wand.and.stars")
+                                        Text("Analyze")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 28)
+                                    .padding(.vertical, 10)
+                                    .background(Color.blue)
+                                    .cornerRadius(10)
                                 }
-                                .buttonStyle(.borderedProminent)
+                                .buttonStyle(.plain)
                             }
                         }
-                        .padding()
-                        .background(Color.black.opacity(0.6))
-                        .cornerRadius(10)
+                        .padding(16)
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(14)
+                        .transition(.scale.combined(with: .opacity))
                     }
 
                     // Result
                     if !analysisResult.isEmpty {
-                        Text(analysisResult)
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: 500)
-                            .background(Color.green.opacity(0.3))
-                            .cornerRadius(10)
-                            .padding(.top, 8)
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: analysisResult.contains("doesn't reveal") ? "xmark.circle.fill" : "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(analysisResult.contains("doesn't reveal") ? .orange : .green)
+                                .padding(.top, 2)
+
+                            Text(analysisResult)
+                                .font(.body)
+                                .foregroundColor(.white)
+                                .lineSpacing(4)
+                        }
+                        .padding(16)
+                        .frame(maxWidth: 520)
+                        .background(
+                            (analysisResult.contains("doesn't reveal") ? Color.orange : Color.green)
+                                .opacity(0.2)
+                        )
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(
+                                    (analysisResult.contains("doesn't reveal") ? Color.orange : Color.green).opacity(0.4),
+                                    lineWidth: 1
+                                )
+                        )
+                        .padding(.top, 8)
+                        .transition(.opacity)
                     }
 
                     // Completed analyses
                     if !completedAnalyses.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
                             ForEach(completedAnalyses) { result in
-                                HStack {
+                                HStack(spacing: 4) {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
-                                        .font(.caption)
-                                    Text("\(result.tool.rawValue): \(result.evidence.name)")
+                                        .font(.caption2)
+                                    Text(result.evidence.name)
                                         .font(.caption2)
                                         .foregroundColor(.white.opacity(0.8))
                                 }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.green.opacity(0.15))
+                                .cornerRadius(6)
                             }
                         }
-                        .padding(10)
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(8)
                         .padding(.top, 8)
                     }
 
