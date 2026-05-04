@@ -432,6 +432,7 @@ struct CaseBoardView: View {
             }
         }
         .onAppear {
+            syncCompletedAnalyses()
             showInitialGuardHintIfNeeded()
         }
         .onChange(of: gameState.collectedEvidence.count) { _, _ in
@@ -498,9 +499,7 @@ struct CaseBoardView: View {
         for evidence in selected {
             if let result = gameState.performAnalysis(evidenceID: evidence.id, tool: tool) {
                 analysisResult = result
-                completedAnalyses.append(
-                    AnalysisResult(evidence: evidence, tool: tool)
-                )
+                recordCompletedAnalysis(for: evidence, tool: tool)
                 foundResult = true
                 break
             }
@@ -581,6 +580,18 @@ struct CaseBoardView: View {
     private func hasAnalyzed(_ evidenceName: String) -> Bool {
         guard let evidence = gameState.collectedEvidence.first(where: { $0.name == evidenceName }) else { return false }
         return gameState.analysisResults[evidence.id.uuidString] != nil
+    }
+
+    private func syncCompletedAnalyses() {
+        completedAnalyses = gameState.collectedEvidence.compactMap { evidence in
+            guard gameState.analysisResults[evidence.id.uuidString] != nil else { return nil }
+            return AnalysisResult(evidence: evidence, tool: .comparison)
+        }
+    }
+
+    private func recordCompletedAnalysis(for evidence: Evidence, tool: AnalysisTool) {
+        guard !completedAnalyses.contains(where: { $0.evidence.id == evidence.id }) else { return }
+        completedAnalyses.append(AnalysisResult(evidence: evidence, tool: tool))
     }
 
     private func presentGuardHint(_ hint: String) {
@@ -679,9 +690,10 @@ struct EvidenceBoardItem: View {
 
 // supporting models
 struct AnalysisResult: Identifiable {
-    let id = UUID()
     let evidence: Evidence
     let tool: AnalysisTool
+
+    var id: UUID { evidence.id }
 }
 
 struct AnalysisGuardHintView: View {
