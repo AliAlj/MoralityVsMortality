@@ -291,8 +291,9 @@ struct CaseBoardView: View {
                     .padding(8)
                     .background(Color.black.opacity(0.6))
                     .cornerRadius(8)
-                    .padding(.bottom, 10)
+
                 }
+                .padding(.bottom, 10)
 
                 // Right side: Tools
                 VStack(spacing: 6) {
@@ -398,40 +399,45 @@ struct CaseBoardView: View {
                 }
             }
 
-            if showingGuardHint {
-                AnalysisGuardHintView(
-                    hintText: currentGuardHint,
-                    onDismiss: {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            showingGuardHint = false
+            VStack(alignment: .trailing, spacing: 12) {
+                if showingGuardHint {
+                    AnalysisGuardHintView(
+                        hintText: currentGuardHint,
+                        onDismiss: {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                showingGuardHint = false
+                            }
                         }
+                    )
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                } else {
+                    Button {
+                        showNextRelevantHint()
+                    } label: {
+                        Label("Ask Guard", systemImage: "lightbulb.fill")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 12)
+                            .background(Color.blue)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
+                            )
                     }
-                )
-                .padding()
-                .padding(.bottom, gameState.canProgressToNextAct ? 72 : 0)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                .transition(.move(edge: .trailing).combined(with: .opacity))
-            } else {
-                Button {
-                    showNextRelevantHint()
-                } label: {
-                    Label("Ask Guard", systemImage: "lightbulb.fill")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                        )
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-                .padding()
-                .padding(.bottom, gameState.canProgressToNextAct ? 72 : 0)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+
+                if gameState.canProgressToNextAct {
+                    Button("Continue →") {
+                        gameState.progressToNextAct()
+                    }
+                    .actContinueButtonStyle()
+                }
             }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
         }
         .onAppear {
             syncCompletedAnalyses()
