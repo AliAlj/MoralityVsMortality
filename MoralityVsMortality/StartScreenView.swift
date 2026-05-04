@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Start Screen
 struct StartScreenView: View {
+    @EnvironmentObject private var gameState: GameState
     @AppStorage("hasSeenIntro") private var hasSeenIntro = false
     @AppStorage("playerName") private var savedName = ""
     @Binding var screen: AppScreen
@@ -27,6 +28,7 @@ struct StartScreenView: View {
                     if hasCompletedSetup {
                         showNewGameConfirm = true
                     } else {
+                        beginFreshGame()
                         screen = .intro
                     }
                 } label: {
@@ -88,9 +90,7 @@ struct StartScreenView: View {
 
                             Button {
                                 showNewGameConfirm = false
-                                UserDefaults.standard.removeObject(forKey: "playerName")
-                                UserDefaults.standard.removeObject(forKey: "selectedDetective")
-                                UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
+                                beginFreshGame()
                                 screen = .intro
                             } label: {
                                 Text("New Game")
@@ -114,6 +114,13 @@ struct StartScreenView: View {
                 }
             }
         }
+    }
+
+    private func beginFreshGame() {
+        gameState.resetGame()
+        UserDefaults.standard.removeObject(forKey: "playerName")
+        UserDefaults.standard.removeObject(forKey: "selectedDetective")
+        UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
     }
 }
 
@@ -299,6 +306,7 @@ struct CharacterSelectView: View {
                             Button {
                                 let name = playerName.trimmingCharacters(in: .whitespaces)
                                 let detective = selectedDetective ?? "detectiveOne"
+                                gameState.resetGame()
                                 gameState.playerName = name
                                 gameState.selectedDetective = detective
                                 UserDefaults.standard.set(name, forKey: "playerName")

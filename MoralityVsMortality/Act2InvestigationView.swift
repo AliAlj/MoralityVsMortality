@@ -95,7 +95,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 name: "Syringe",
                 description: "A syringe found near the hospital bed",
                 position: CGPoint(x: 290, y: 350),
-                size: CGSize(width: 60, height: 50),
+                size: CGSize(width: 30, height: 30),
                 imageName: "syringe",
                 evidence: Evidence(
                     name: "Syringe",
@@ -109,8 +109,8 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Sedation Chart",
                 description: "A chart clipped to the bed frame",
-                position: CGPoint(x: 512, y: 255),
-                size: CGSize(width: 80, height: 60),
+                position: CGPoint(x: 512, y: 250),
+                size: CGSize(width: 40, height: 40),
                 imageName: "sedationClipboard",
                 evidence: Evidence(
                     name: "Sedation Chart",
@@ -124,8 +124,8 @@ class Act2InvestigationViewModel: ObservableObject {
             InvestigationArea(
                 name: "Vital Monitor",
                 description: "The bedside vital signs monitor with a printout",
-                position: CGPoint(x: 90, y: 210),
-                size: CGSize(width: 160, height: 160),
+                position: CGPoint(x: 90, y: 205),
+                size: CGSize(width: 80, height: 80),
                 imageName: "healthMonitor",
                 evidence: Evidence(
                     name: "Vital Monitor Printout",
@@ -145,7 +145,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 name: "Crumbled Paper",
                 description: "A crumbled piece of paper tucked under the bed",
                 position: CGPoint(x: 300, y: 330),
-                size: CGSize(width: 40, height: 35),
+                size: CGSize(width: 20, height: 20),
                 imageName: "crumbledPaper",
                 evidence: Evidence(
                     name: "Love Letter",
@@ -178,29 +178,35 @@ class Act2InvestigationViewModel: ObservableObject {
 struct Act2SceneInvestigationView: View {
     @ObservedObject var viewModel: Act2InvestigationViewModel
     @EnvironmentObject private var gameState: GameState
+    private let baseSceneSize = CGSize(width: 700, height: 450)
 
     var body: some View {
         GeometryReader { geometry in
+            let sceneScale = min(
+                geometry.size.width / baseSceneSize.width,
+                geometry.size.height / baseSceneSize.height
+            )
+
             ZStack {
+                ZStack {
+                    // Room background
+                    RoomBackgroundView(room: viewModel.currentRoom)
+                        .allowsHitTesting(false)
 
-                // Room background
-                RoomBackgroundView(room: viewModel.currentRoom)
-                    .allowsHitTesting(false)
-
-                // Interactive areas - positions scale to available space
-                ForEach(viewModel.investigationAreas) { area in
-                    InvestigationAreaView(
-                        area: area,
-                        isSearched: gameState.isAreaSearched(area.name),
-                        onTap: {
-                            viewModel.searchArea(area, in: gameState)
-                        }
-                    )
-                    .position(
-                        x: (area.position.x / 700) * geometry.size.width,
-                        y: (area.position.y / 450) * geometry.size.height
-                    )
+                    // Interactive areas share the same fixed design-space as the background.
+                    ForEach(viewModel.investigationAreas) { area in
+                        InvestigationAreaView(
+                            area: area,
+                            isSearched: gameState.isAreaSearched(area.name),
+                            onTap: {
+                                viewModel.searchArea(area, in: gameState)
+                            }
+                        )
+                        .position(x: area.position.x, y: area.position.y)
+                    }
                 }
+                .frame(width: baseSceneSize.width, height: baseSceneSize.height)
+                .scaleEffect(sceneScale)
 
                 VStack(spacing: 12) {
                     Picker("Location", selection: $viewModel.currentRoom) {
@@ -258,6 +264,7 @@ struct Act2SceneInvestigationView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black)
             .clipped()
             .onAppear {
                 if gameState.guardIntroCompleted {
