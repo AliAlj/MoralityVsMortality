@@ -209,69 +209,62 @@ struct CaseBoardView: View {
                     Spacer()
 
                     // Progress
-                    VStack(spacing: 8) {
-                        HStack {
-                            Text("Analyses: \(gameState.analysisResults.count)")
-                            if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text("Ready to continue")
-                                    .foregroundColor(.green)
-                            } else {
-                                Text("Need \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more")
-                                    .foregroundColor(.orange)
-                            }
-                        }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.black.opacity(0.6))
-                        .cornerRadius(8)
-
-                        if gameState.canProgressToNextAct {
-                            Button {
-                                gameState.progressToNextAct()
-                            } label: {
-                                HStack {
-                                    Text("Continue to Act IV")
-                                    Image(systemName: "arrow.right")
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
+                    HStack {
+                        Text("Analyses: \(gameState.analysisResults.count)/\(gameState.analysisCompletionTarget)")
+                        if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        } else {
+                            Text("— \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more needed")
+                                .foregroundColor(.orange)
                         }
                     }
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(Color.black.opacity(0.6))
+                    .cornerRadius(8)
                     .padding(.bottom, 10)
                 }
 
                 // Right side: Tools
-                VStack(spacing: 8) {
+                VStack(spacing: 6) {
+                    Spacer()
+
                     Text("TOOLS")
                         .font(.custom("Times New Roman", size: 14))
                         .foregroundColor(.white.opacity(0.7))
                         .tracking(2)
-                        .padding(.top, 8)
 
-                    ForEach(AnalysisTool.allCases, id: \.rawValue) { tool in
+                    Text("Select a tool, then pick evidence and hit Analyze.")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.5))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 4)
+
+                    ForEach(AnalysisTool.allCases.filter { $0 != .magnify }, id: \.rawValue) { tool in
                         Button {
                             selectedTool = tool
                         } label: {
-                            VStack(spacing: 4) {
+                            HStack(spacing: 6) {
                                 Image(systemName: tool.icon)
-                                    .font(.title3)
+                                    .font(.caption)
+                                    .frame(width: 20)
                                     .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.6))
                                 Text(tool.rawValue)
                                     .font(.caption2)
                                     .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.6))
+                                Spacer()
                             }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 65)
                             .background(selectedTool == tool ? Color.blue.opacity(0.6) : Color.white.opacity(0.1))
-                            .cornerRadius(8)
+                            .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
                     }
-
-                    Spacer()
 
                     // Tool description
                     if let tool = selectedTool {
@@ -279,10 +272,14 @@ struct CaseBoardView: View {
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.7))
                             .multilineTextAlignment(.center)
-                            .padding(8)
+                            .padding(6)
+                            .background(Color.white.opacity(0.05))
+                            .cornerRadius(6)
                     }
+
+                    Spacer()
                 }
-                .frame(width: 130)
+                .frame(width: 150)
                 .padding(10)
                 .background(Color.black.opacity(0.5))
             }
@@ -419,10 +416,9 @@ struct CaseBoardView: View {
         guard !selectedEvidence.isEmpty,
               let tool = selectedTool else { return }
 
-        // Magnify tool opens zoom view instead of analyzing
-        if tool == .magnify {
-            magnifyingEvidence = selectedEvidence.first
-            selectedEvidence.removeAll()
+        // Comparison requires exactly 2 items selected
+        if tool == .comparison && selectedEvidence.count < 2 {
+            analysisResult = "Select two pieces of evidence to compare."
             return
         }
 
@@ -488,26 +484,36 @@ struct CaseBoardView: View {
     }
 
     private func showInitialGuardHintIfNeeded() {
-        guard !didShowInitialGuardHint else { return }
-        didShowInitialGuardHint = true
-        presentGuardHint("Start with the belongings bag I gave you. If Wayne kept anything personal on him, it may tell you more than the paperwork does.")
+        // Only show hints when the player asks via the Ask Guard button
     }
 
     private func showLicenseHintIfNeeded() {
-        guard gameState.hasEvidence(named: "Wayne's License") else { return }
-        guard !didShowLicenseGuardHint else { return }
-        didShowLicenseGuardHint = true
-        presentGuardHint("That license looks off compared to the intake form. Put those two side by side and see what doesn't match.")
+        // Only show hints when the player asks via the Ask Guard button
     }
 
     private func showNextRelevantHint() {
         if !gameState.hasEvidence(named: "Wayne's License") {
-            presentGuardHint("Try opening Wayne's belongings first. The bag itself isn't the important part.")
+            presentGuardHint("Open Wayne's belongings first — click the \"Open\" button next to it on the left. You need what's inside.")
         } else if !hasCompletedLicenseComparison {
-            presentGuardHint("The license and the intake form are telling two different stories. Compare those documents.")
+            presentGuardHint("Select the Comparison tool on the right, then click Wayne's License on the left and hit Analyze. Do the same with the Prison Intake Form.")
+        } else if !hasAnalyzed("Time Log") {
+            presentGuardHint("Use the Timeline tool on the Time Log — it'll show you who was in Wayne's room and when. Then try Context Link on it too.")
+        } else if !hasAnalyzed("Syringe") {
+            presentGuardHint("Run Medical Analysis on the Syringe — see what was in it. Then use Context Link to tie it to the timeline.")
+        } else if !hasAnalyzed("Sedation Chart") {
+            presentGuardHint("The Sedation Chart needs Medical Analysis — check if the dosage was normal.")
+        } else if !hasAnalyzed("Vital Monitor Printout") {
+            presentGuardHint("Use Timeline on the Vital Monitor Printout — it shows Wayne was still alive at 3:00 AM.")
+        } else if !hasAnalyzed("Love Letter") {
+            presentGuardHint("Try Context Link on the Love Letter — it explains why Kathy was really there that night.")
         } else {
-            presentGuardHint("Look for contradictions in the records, then tie them back to the timeline and medical evidence.")
+            presentGuardHint("You've uncovered a lot. Keep analyzing — every piece of evidence has something to reveal with the right tool.")
         }
+    }
+
+    private func hasAnalyzed(_ evidenceName: String) -> Bool {
+        guard let evidence = gameState.collectedEvidence.first(where: { $0.name == evidenceName }) else { return false }
+        return gameState.analysisResults[evidence.id.uuidString] != nil
     }
 
     private func presentGuardHint(_ hint: String) {

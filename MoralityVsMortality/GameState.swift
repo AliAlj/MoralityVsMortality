@@ -183,16 +183,16 @@ class GameState: ObservableObject {
             ],
             // Timeline Tool results
             "Time Log": [
-                .timeline: "Dr. Victor Smith entered unauthorized at 2:00 AM. Hilarie Jones entered at 2:14 AM and saw him near the IV. Kathy Williams badged in at 3:00 AM and found Wayne unresponsive. Dr. Smith returned at 3:10 AM and pronounced death.",
-                .contextLink: "The Time Log shows Dr. Smith was in the room at 2:00 AM — the same time the Syringe was likely used. Hilarie Jones witnessed him near Wayne's IV and saw a syringe cap drop. This links the unauthorized entry to the sedation."
+                .timeline: "2:00 AM — Dr. Victor Smith entered Wayne's room. No scheduled reason. 2:14 AM — Hilarie Jones badged in. 3:00 AM — Kathy Williams badged in, found Wayne unresponsive. 3:10 AM — Dr. Smith returned and pronounced death.",
+                .contextLink: "Dr. Smith was in the room at 2:00 AM with no scheduled reason. The syringe was found near the bed. Someone administered a sedative between 2:00 AM and 3:00 AM — and the only person in the room during that window was the surgeon."
             ],
             "Vital Monitor Printout": [
-                .timeline: "Heart rate and oxygen levels were present at 3:00 AM. Wayne was alive when Kathy found him. He was pronounced dead after the surgeon arrived."
+                .timeline: "Heart rate and oxygen levels were present at 3:00 AM. Wayne was alive when Kathy found him. He was pronounced dead only after the surgeon arrived at 3:10 AM."
             ],
             // Medical Analysis Tool results
             "Syringe": [
                 .medical: "Traces of elevated sedative compounds detected. Dosage far exceeds standard preoperative levels. This was not accidental.",
-                .contextLink: "The Syringe matches the receptionist's account of Dr. Smith injecting something into Wayne's IV at 2:00 AM. The Time Log confirms he was in the room at that time."
+                .contextLink: "The syringe was found near Wayne's bed. The Time Log shows Dr. Smith was the only person in the room between 2:00 AM and 2:14 AM — the window when the sedative was likely administered."
             ],
             "Sedation Chart": [
                 .medical: "Prescribed dosage is significantly higher than normal for a routine procedure. Sedation levels were intentionally increased."
