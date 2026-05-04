@@ -18,6 +18,8 @@ struct StartScreenView: View {
             Image("startScreen")
                 .resizable()
                 .scaledToFill()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {
