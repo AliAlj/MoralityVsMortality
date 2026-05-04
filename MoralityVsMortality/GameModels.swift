@@ -112,13 +112,6 @@ enum InvestigationRoom: String, CaseIterable {
     case jailCell     = "Jail Cell"
     case hospitalRoom = "Hospital Room"
 
-    var subtitle: String {
-        switch self {
-        case .hospitalRoom: return "HOSPITAL WING"
-        case .jailCell:     return "JAIL CELL"
-        }
-    }
-
     var imageName: String {
         switch self {
         case .hospitalRoom: return "hospitalRoom"

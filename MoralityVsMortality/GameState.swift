@@ -31,6 +31,9 @@ class GameState: ObservableObject {
 
     //  Computed
     var realEvidenceCount: Int   { collectedEvidence.filter(\.isRealEvidence).count }
+    var investigationEvidenceCount: Int {
+        collectedEvidence.filter { $0.isRealEvidence && $0.actDiscovered == 2 }.count
+    }
     var totalEvidenceFound: Int  { collectedEvidence.count }
     var interrogationCompletionTarget: Int { totalInterrogationDialogueCount }
     var investigationCompletionTarget: Int { totalInvestigationEvidenceCount }
@@ -39,7 +42,7 @@ class GameState: ObservableObject {
     var canProgressToNextAct: Bool {
         switch currentAct {
         case .interrogation:  return unlockedDialogue.count >= totalInterrogationDialogueCount
-        case .investigation:  return realEvidenceCount >= totalInvestigationEvidenceCount
+        case .investigation:  return investigationEvidenceCount >= totalInvestigationEvidenceCount
         case .analysis:       return analysisResults.count >= totalAnalysisResultCount
         case .confrontation:  return false  // ends game
         }

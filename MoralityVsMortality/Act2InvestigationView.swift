@@ -100,7 +100,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 evidence: Evidence(
                     name: "Syringe",
                     description: "A used syringe with multiple injection marks. Suggests excessive sedation beyond what a routine procedure would require.",
-                    actDiscovered: 1,
+                    actDiscovered: 2,
                     isRealEvidence: true,
                     evidenceType: .physical,
                     metadata: ["usage": "multiple injections", "concern": "excessive sedation"]
@@ -115,7 +115,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 evidence: Evidence(
                     name: "Sedation Chart",
                     description: "Wayne's sedation dosage log. The prescribed amounts are significantly higher than standard levels for a routine procedure.",
-                    actDiscovered: 1,
+                    actDiscovered: 2,
                     isRealEvidence: true,
                     evidenceType: .document,
                     metadata: ["dosage": "above normal", "procedure": "routine surgery"]
@@ -130,7 +130,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 evidence: Evidence(
                     name: "Vital Monitor Printout",
                     description: "A printout from the vital signs monitor. It shows Wayne still had a heart rate and oxygen levels at 3:00 AM. He was alive when found.",
-                    actDiscovered: 1,
+                    actDiscovered: 2,
                     isRealEvidence: true,
                     evidenceType: .physical,
                     metadata: ["time": "3:00 AM", "status": "vitals present", "implication": "alive when found"]
@@ -150,7 +150,7 @@ class Act2InvestigationViewModel: ObservableObject {
                 evidence: Evidence(
                     name: "Love Letter",
                     description: "A crumpled letter hidden under the bed. 'When I get out of here, I'm coming straight to you. You're the only good thing in this place.' Signed W.",
-                    actDiscovered: 1,
+                    actDiscovered: 2,
                     isRealEvidence: true,
                     evidenceType: .document,
                     metadata: ["author": "Wayne Michaels", "recipient": "Kathy Williams", "tone": "romantic, personal"]
@@ -337,20 +337,6 @@ struct RoomBackgroundView: View {
 
             // Darkened overlay for readability
             Color.black.opacity(0.3)
-
-            // Room subtitle
-            VStack {
-                Spacer()
-
-                HStack {
-                    Spacer()
-                    Text(room.subtitle)
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                        .padding()
-                }
-            }
-            .padding()
         }
     }
 
