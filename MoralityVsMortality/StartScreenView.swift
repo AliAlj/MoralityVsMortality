@@ -150,53 +150,58 @@ struct IntroScreenView: View {
             Color.black
                 .ignoresSafeArea()
 
-            Image("storyBackground")
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: 750, maxHeight: 550)
+            ZStack {
+                Image("storyBackground")
+                    .resizable()
+                    .scaledToFill()
+                    .clipped()
 
-            VStack(spacing: 0) {
-                Text("YOU'RE HIRED")
-                    .font(.largeTitle)
-                    .fontWeight(.heavy)
-                    .foregroundColor(.white)
-                    .tracking(4)
-                    .padding(.top, 60)
+                Color.black.opacity(0.4)
 
-                Spacer()
+                VStack(spacing: 0) {
+                    Text("YOU'RE HIRED")
+                        .font(.largeTitle)
+                        .fontWeight(.heavy)
+                        .foregroundColor(.white)
+                        .tracking(4)
+                        .padding(.top, 40)
 
-                Text(displayedText)
-                    .font(.title2)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(6)
-                    .padding(.horizontal, 60)
-                    .frame(maxWidth: 800)
+                    Spacer()
 
-                Spacer()
+                    Text(displayedText)
+                        .font(.title)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(6)
+                        .padding(.horizontal, 40)
 
-                if showContinue {
-                    Button {
-                        advancePage()
-                    } label: {
-                        Text(currentPage < pages.count - 1 ? "Continue" : "Begin Investigation")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 32)
-                            .padding(.vertical, 12)
-                            .background(Color.white.opacity(0.15))
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                            )
+                    Spacer()
+
+                    if showContinue {
+                        Button {
+                            advancePage()
+                        } label: {
+                            Text(currentPage < pages.count - 1 ? "Continue" : "Begin Investigation")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 32)
+                                .padding(.vertical, 12)
+                                .background(Color.white.opacity(0.15))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .transition(.opacity)
+                        .padding(.bottom, 40)
                     }
-                    .buttonStyle(.plain)
-                    .transition(.opacity)
-                    .padding(.bottom, 60)
                 }
             }
+            .frame(maxWidth: 850, maxHeight: 650)
+            .cornerRadius(12)
             .contentShape(Rectangle())
             .onTapGesture {
                 if isTyping {
