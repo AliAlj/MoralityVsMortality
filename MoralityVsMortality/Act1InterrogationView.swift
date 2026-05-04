@@ -363,7 +363,7 @@ struct Act1InterrogationMainView: View {
                         .padding()
                     }
                     .background(Color.black)
-                    .onChange(of: viewModel.conversationHistory.count) { _ in
+                    .onChange(of: viewModel.conversationHistory.count) { _, _ in
                         if let last = viewModel.conversationHistory.last {
                             withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                         }

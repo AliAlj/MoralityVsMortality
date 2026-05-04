@@ -22,6 +22,12 @@ struct MoralityVsMortalityApp: App {
                     .environmentObject(gameState)
             }
         }
+        .onChange(of: gameState.shouldReturnToStart) { _, shouldReturn in
+            if shouldReturn {
+                gameState.shouldReturnToStart = false
+                currentScreen = .start
+            }
+        }
         #if os(macOS)
         .defaultSize(width: 1100, height: 750)
         #endif

@@ -7,14 +7,8 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Group {
-                #if DEBUG
-                activeActView
-                #else
-                standardBody
-                #endif
-            }
-            .opacity(showingActCard ? 0 : 1)
+            activeActView
+                .opacity(showingActCard ? 0 : 1)
 
             #if DEBUG
             if !showingActCard {
@@ -63,16 +57,6 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var standardBody: some View {
-        VStack(spacing: 0) {
-            HeaderView()
-            Divider()
-            activeActView
-            Divider()
-            BottomNavigationView()
-        }
     }
 
 }
@@ -138,29 +122,6 @@ struct ActTitleCardView: View {
     }
 }
 
-// Header
-struct HeaderView: View {
-    @EnvironmentObject var gameState: GameState
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Act \(gameState.currentAct.rawValue): \(gameState.currentAct.title)")
-                    .font(.title2).fontWeight(.semibold)
-                Text(gameState.currentAct.subtitle)
-                    .font(.caption).foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            Text("Evidence: \(gameState.realEvidenceCount)")
-                .font(.caption).foregroundColor(.secondary)
-
-        }
-        .padding()
-        .background(Color.primary.opacity(0.04))
-    }
-}
 
 #if DEBUG
 struct DebugMenuView: View {
@@ -199,27 +160,7 @@ struct DebugMenuView: View {
         .shadow(color: .blue.opacity(0.35), radius: 8, x: 0, y: 2)
     }
 }
-#endif
 
-// Bottom Nav
-struct BottomNavigationView: View {
-    @EnvironmentObject var gameState: GameState
-
-    var body: some View {
-        HStack {
-            Spacer()
-
-            if !gameState.gameCompleted && gameState.canProgressToNextAct {
-                Button("Continue →") { gameState.progressToNextAct() }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-            }
-        }
-        .padding()
-    }
-}
-
-#if DEBUG
 struct DebugProgressOverlay: View {
     @EnvironmentObject var gameState: GameState
 

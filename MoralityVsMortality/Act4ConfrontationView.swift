@@ -104,7 +104,7 @@ struct ReceptionistConfrontationView: View {
                         .padding()
                     }
                     .background(Color.black)
-                    .onChange(of: conversationHistory.count) { _ in
+                    .onChange(of: conversationHistory.count) { _, _ in
                         if let last = conversationHistory.last {
                             withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                         }
@@ -278,7 +278,7 @@ struct KathyFinalView: View {
                         .padding()
                     }
                     .background(Color.black)
-                    .onChange(of: conversationHistory.count) { _ in
+                    .onChange(of: conversationHistory.count) { _, _ in
                         if let last = conversationHistory.last {
                             withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                         }
@@ -452,7 +452,7 @@ struct SurgeonConfrontationView: View {
                         .padding()
                     }
                     .background(Color.black)
-                    .onChange(of: conversationHistory.count) { _ in
+                    .onChange(of: conversationHistory.count) { _, _ in
                         if let last = conversationHistory.last {
                             withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                         }
@@ -753,6 +753,7 @@ struct FinalChoiceView: View {
 
                     Button {
                         gameState.resetGame()
+                        gameState.shouldReturnToStart = true
                     } label: {
                         Text("PLAY AGAIN")
                             .font(.custom("Times New Roman", size: 16))

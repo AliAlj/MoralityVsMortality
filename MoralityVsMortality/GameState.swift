@@ -27,6 +27,7 @@ class GameState: ObservableObject {
     @Published var completedInterrogationStages: Set<Int> = []
     @Published var guardIntroCompleted: Bool = false
     @Published var act4PhaseIndex: Int = 0
+    @Published var shouldReturnToStart: Bool = false
 
     //  Computed
     var realEvidenceCount: Int   { collectedEvidence.filter(\.isRealEvidence).count }

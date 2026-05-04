@@ -432,51 +432,6 @@ struct InvestigationAreaView: View {
     }
 }
 
-// evidence summary
-struct EvidenceSummaryView: View {
-    @EnvironmentObject private var gameState: GameState
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text("Evidence Found: \(gameState.totalEvidenceFound)")
-                    .font(.headline)
-                
-                Text("Real Evidence: \(gameState.realEvidenceCount)")
-                    .font(.subheadline)
-                    .foregroundColor(.green)
-            }
-            
-            Spacer()
-            
-            if gameState.canProgressToNextAct {
-                VStack(alignment: .trailing) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.title2)
-                    
-                    Text("Ready to Continue")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-            } else {
-                VStack(alignment: .trailing) {
-                    Text("Need \(max(0, 6 - gameState.realEvidenceCount)) more")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                    
-                    Text("real evidence pieces")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                }
-            }
-        }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(8)
-    }
-}
-
 // prison guard dialogue
 struct GuardDialogueView: View {
     @ObservedObject var viewModel: Act2InvestigationViewModel
