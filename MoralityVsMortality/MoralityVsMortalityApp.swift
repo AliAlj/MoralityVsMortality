@@ -7,19 +7,23 @@ struct MoralityVsMortalityApp: App {
 
     var body: some Scene {
         WindowGroup {
-            switch currentScreen {
-            case .start:
-                StartScreenView(screen: $currentScreen)
-                    .environmentObject(gameState)
-            case .intro:
-                IntroScreenView(screen: $currentScreen)
-                    .environmentObject(gameState)
-            case .characterSelect:
-                CharacterSelectView(screen: $currentScreen)
-                    .environmentObject(gameState)
-            case .game:
-                ContentView()
-                    .environmentObject(gameState)
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                switch currentScreen {
+                case .start:
+                    StartScreenView(screen: $currentScreen)
+                        .environmentObject(gameState)
+                case .intro:
+                    IntroScreenView(screen: $currentScreen)
+                        .environmentObject(gameState)
+                case .characterSelect:
+                    CharacterSelectView(screen: $currentScreen)
+                        .environmentObject(gameState)
+                case .game:
+                    ContentView()
+                        .environmentObject(gameState)
+                }
             }
         }
         .onChange(of: gameState.shouldReturnToStart) { _, shouldReturn in

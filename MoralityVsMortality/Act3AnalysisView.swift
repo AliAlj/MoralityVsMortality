@@ -765,6 +765,9 @@ struct MagnifyOverlay: View {
 }
 
 // Scroll gesture for zoom on macOS
+#if os(macOS)
+import AppKit
+
 extension View {
     func onScrollGesture(action: @escaping (CGFloat) -> Void) -> some View {
         self.background(
@@ -794,6 +797,13 @@ class ScrollDetectorView: NSView {
         action?(event.deltaY)
     }
 }
+#else
+extension View {
+    func onScrollGesture(action: @escaping (CGFloat) -> Void) -> some View {
+        self
+    }
+}
+#endif
 
 // Office Bulletin Button
 struct OfficeBulletinButton: View {

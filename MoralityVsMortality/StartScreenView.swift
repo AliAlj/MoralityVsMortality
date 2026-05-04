@@ -35,7 +35,7 @@ struct StartScreenView: View {
                     Image("startButton")
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 100)
+                        .frame(width: 300, height: 100)
                 }
                 .buttonStyle(.plain)
 
@@ -47,7 +47,7 @@ struct StartScreenView: View {
                         Image("continueButton")
                             .resizable()
                             .scaledToFit()
-                            .frame(height: 100)
+                            .frame(width: 300, height: 100)
                     }
                     .buttonStyle(.plain)
                 }
