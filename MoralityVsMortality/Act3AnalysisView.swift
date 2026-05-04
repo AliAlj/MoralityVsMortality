@@ -495,7 +495,7 @@ struct CaseBoardView: View {
         if !gameState.hasEvidence(named: "Wayne's License") {
             presentGuardHint("Open Wayne's belongings first — click the \"Open\" button next to it on the left. You need what's inside.")
         } else if !hasCompletedLicenseComparison {
-            presentGuardHint("Select the Comparison tool on the right, then click Wayne's License on the left and hit Analyze. Do the same with the Prison Intake Form.")
+            presentGuardHint("Select the Comparison tool, then pick both Wayne's License and the Prison Intake Form from the evidence board. Hit Analyze and see what doesn't add up.")
         } else if !hasAnalyzed("Time Log") {
             presentGuardHint("Use the Timeline tool on the Time Log — it'll show you who was in Wayne's room and when. Then try Context Link on it too.")
         } else if !hasAnalyzed("Syringe") {
