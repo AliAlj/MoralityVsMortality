@@ -162,21 +162,23 @@ struct IntroScreenView: View {
 
                 VStack(spacing: 0) {
                     Text("YOU'RE HIRED")
-                        .font(.largeTitle)
+                        .font(.custom("Impact", size: 35))
                         .fontWeight(.heavy)
                         .foregroundColor(.white)
                         .tracking(4)
-                        .padding(.top, 40)
+                        .padding(.top, 140)
 
                     Spacer()
+                        .frame(height: 50)
 
                     Text(displayedText)
-                        .font(.title)
+                        .font(.custom("Impact", size: 25))
                         .fontWeight(.medium)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .lineSpacing(6)
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 60)
+                        .frame(maxWidth: 800)
 
                     Spacer()
 
@@ -198,7 +200,7 @@ struct IntroScreenView: View {
                         }
                         .buttonStyle(.plain)
                         .transition(.opacity)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 30)
                     }
                 }
             }
