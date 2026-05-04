@@ -408,6 +408,7 @@ struct CaseBoardView: View {
                     }
                 )
                 .padding()
+                .padding(.bottom, gameState.canProgressToNextAct ? 72 : 0)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             } else {
@@ -428,6 +429,7 @@ struct CaseBoardView: View {
                 }
                 .buttonStyle(.plain)
                 .padding()
+                .padding(.bottom, gameState.canProgressToNextAct ? 72 : 0)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
         }
