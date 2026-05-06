@@ -25,6 +25,9 @@ struct MoralityVsMortalityApp: App {
                         .environmentObject(gameState)
                 }
             }
+            .onAppear {
+                AudioManager.shared.playBackgroundMusic()
+            }
         }
         .onChange(of: gameState.shouldReturnToStart) { _, shouldReturn in
             if shouldReturn {
