@@ -120,7 +120,7 @@ struct ReceptionistConfrontationView: View {
                         Button("Proceed to Kathy Williams") {
                             onComplete()
                         }
-                        .buttonStyle(.borderedProminent)
+                        .actContinueButtonStyle()
                         .padding()
                     } else {
                         ForEach(currentQuestions) { question in
@@ -291,10 +291,10 @@ struct KathyFinalView: View {
 
                 VStack(spacing: 8) {
                     if currentQuestions.isEmpty && questionPhase >= kathyPhases.count {
-                        Button("Proceed to Dr. Victor Smith") {
+                        Button("Confront the Killer") {
                             onComplete()
                         }
-                        .buttonStyle(.borderedProminent)
+                        .actContinueButtonStyle()
                         .padding()
                     } else {
                         ForEach(currentQuestions) { question in
@@ -468,7 +468,7 @@ struct SurgeonConfrontationView: View {
                         Button("Make Your Final Decision") {
                             onComplete()
                         }
-                        .buttonStyle(.borderedProminent)
+                        .actContinueButtonStyle()
                         .padding()
                     } else {
                         ForEach(currentQuestions) { question in

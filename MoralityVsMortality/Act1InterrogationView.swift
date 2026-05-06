@@ -391,7 +391,7 @@ struct Act1InterrogationMainView: View {
                                     Image(systemName: "arrow.right")
                                 }
                             }
-                            .buttonStyle(.borderedProminent)
+                            .actContinueButtonStyle()
                             .padding()
                         }
                     } else if let question = viewModel.currentQuestion {

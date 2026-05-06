@@ -117,11 +117,6 @@ class GameState: ObservableObject {
         }
     }
 
-    func jumpToAct(_ act: GameAct) {
-        currentAct = act
-        saveGame()
-    }
-
     func completeGame() {
         gameCompleted = true
         saveGame()

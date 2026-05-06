@@ -10,15 +10,13 @@ struct ContentView: View {
             activeActView
                 .opacity(showingActCard ? 0 : 1)
 
-            #if DEBUG
-            if !showingActCard {
-                DebugMenuView()
-                    .padding(.top, 64)
-                    .padding(.trailing, 20)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .zIndex(1000)
+            if !showingActCard,
+               shouldShowBottomContinue {
+                BottomNavigationView()
+                    .environmentObject(gameState)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .zIndex(999)
             }
-            #endif
 
             if showingActCard {
                 ActTitleCardView(act: gameState.currentAct) {
@@ -27,14 +25,6 @@ struct ContentView: View {
                     }
                 }
             }
-
-            #if DEBUG
-            if !showingActCard {
-                DebugProgressOverlay()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .zIndex(999)
-            }
-            #endif
         }
         .onChange(of: gameState.currentAct) { _, newAct in
             if newAct != lastAct {
@@ -57,6 +47,10 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var shouldShowBottomContinue: Bool {
+        gameState.currentAct != .analysis
     }
 
 }
@@ -122,46 +116,7 @@ struct ActTitleCardView: View {
     }
 }
 
-
-#if DEBUG
-struct DebugMenuView: View {
-    @EnvironmentObject var gameState: GameState
-
-    var body: some View {
-        Menu {
-            ForEach(GameAct.allCases, id: \.rawValue) { act in
-                Button("Jump to \(act.title)") { gameState.jumpToAct(act) }
-            }
-            Divider()
-            Button("Reset") { gameState.resetGame() }
-            Button("Reset Onboarding") {
-                UserDefaults.standard.removeObject(forKey: "playerName")
-                UserDefaults.standard.removeObject(forKey: "selectedDetective")
-                UserDefaults.standard.removeObject(forKey: "hasSeenIntro")
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "ladybug.fill")
-                Text("Debug")
-            }
-            .font(.headline.weight(.bold))
-            .foregroundColor(.white)
-        }
-        .menuStyle(.borderlessButton)
-        .buttonStyle(.plain)
-        .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-        .background(Color.blue)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.45), lineWidth: 1.5)
-        )
-        .cornerRadius(12)
-        .shadow(color: .blue.opacity(0.35), radius: 8, x: 0, y: 2)
-    }
-}
-
-struct DebugProgressOverlay: View {
+struct BottomNavigationView: View {
     @EnvironmentObject var gameState: GameState
 
     var body: some View {
@@ -172,15 +127,13 @@ struct DebugProgressOverlay: View {
                 Button("Continue →") {
                     gameState.progressToNextAct()
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .actContinueButtonStyle()
             }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
     }
 }
-#endif
 
 #Preview {
     ContentView().environmentObject(GameState())

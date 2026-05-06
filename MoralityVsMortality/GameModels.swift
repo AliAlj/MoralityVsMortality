@@ -169,3 +169,14 @@ struct ConversationEntry: Identifiable {
 
     enum Speaker { case investigator, suspect }
 }
+
+extension View {
+    func actContinueButtonStyle() -> some View {
+        self
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .font(.headline)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+    }
+}
