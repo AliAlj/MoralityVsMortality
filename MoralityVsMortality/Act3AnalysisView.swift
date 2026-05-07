@@ -7,7 +7,7 @@ struct Act3AnalysisView: View {
     @State private var showBoard = false
     @State private var switchHovered = false
     @State private var showingRoomGuard = true
-    @State private var roomGuardText = "Look around carefully. Hover over anything that catches your eyes and click to investigate."
+    @State private var roomGuardText = "Look around carefully. Hover over anything that catches your eyes and click to investigate. Hint: Start with light switch."
     @State private var hasStartedRoomSound = false
 
     var body: some View {
@@ -135,6 +135,7 @@ struct CaseBoardView: View {
                 // Left side: Evidence on the board
                 ScrollView {
                     VStack(spacing: 8) {
+                        //Spacer()
                         Text("EVIDENCE")
                             .font(.custom("Times New Roman", size: 14))
                             .foregroundColor(.white.opacity(0.7))
@@ -153,6 +154,7 @@ struct CaseBoardView: View {
                             )
                         }
                     }
+                    .padding(.top, 25)
                     .padding(.leading, 18)
                 }
                 .frame(width: 210)
@@ -308,84 +310,81 @@ struct CaseBoardView: View {
 
                     Spacer()
 
-                    // Progress
-                    HStack {
-                        Text("Analyses: \(gameState.analysisResults.count)/\(gameState.analysisCompletionTarget)")
-                        if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        } else {
-                            Text("— \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more needed")
-                                .foregroundColor(.orange)
+                    // Bottom tool bar
+                    VStack(spacing: 8) {
+                        Text("Select a tool, then pick evidence and hit Analyze.")
+                            .font(.callout)
+                            .foregroundColor(.white.opacity(0.6))
+
+                        HStack(spacing: 10) {
+                            ForEach(AnalysisTool.allCases.filter { $0 != .magnify }, id: \.rawValue) { tool in
+                                Button {
+                                    selectedTool = tool
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: tool.icon)
+                                            .font(.title3)
+
+                                        Text(tool.rawValue)
+                                            .font(.callout)
+                                            .fontWeight(.semibold)
+                                    }
+                                    .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.7))
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 12)
+                                    .background(selectedTool == tool ? Color.blue.opacity(0.65) : Color.black.opacity(0.55))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        if let tool = selectedTool {
+                            Text(tool.description)
+                                .font(.caption2)
+                                .foregroundColor(.white.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: 500)
                         }
                     }
-                    .font(.caption)
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(8)
+                    .padding(10)
+                    .background(Color.black.opacity(0.65))
+                    .shadow(color: .black.opacity(0.85), radius: 12, x: 0, y: 5)                    .cornerRadius(12)
+                    .padding(.bottom, 8)
 
                 }
                 .padding(.bottom, 25)
+                .padding(.trailing,120)
 
-                // Right side: Tools
-                VStack(spacing: 6) {
-                    //Spacer()
-
-                    Text("TOOLS")
-                        .font(.custom("Times New Roman", size: 14))
-                        .foregroundColor(.white.opacity(0.7))
-                        .tracking(2)
-                        .padding(.top, 20)
-
-
-                    Text("Select a tool, then pick evidence and hit Analyze.")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.5))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 4)
-                        .padding(.bottom, 4)
-
-                    ForEach(AnalysisTool.allCases.filter { $0 != .magnify }, id: \.rawValue) { tool in
-                        Button {
-                            selectedTool = tool
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: tool.icon)
-                                    .font(.caption)
-                                    .frame(width: 20)
-                                    .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.6))
-                                Text(tool.rawValue)
-                                    .font(.caption2)
-                                    .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.6))
-                                Spacer()
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .frame(maxWidth: .infinity)
-                            .background(selectedTool == tool ? Color.blue.opacity(0.6) : Color.white.opacity(0.1))
-                            .cornerRadius(6)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Tool description
-                    if let tool = selectedTool {
-                        Text(tool.description)
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .padding(6)
-                            .background(Color.white.opacity(0.05))
-                            .cornerRadius(6)
-                    }
-
-                    Spacer()
-                }
-                .frame(width: 150)
-                .padding(10)
-                .background(Color.black.opacity(0.5))
+                
             }
+            // Analysis counter at top center
+            HStack {
+                Text("Analyses: \(gameState.analysisResults.count)/\(gameState.analysisCompletionTarget)")
+
+                if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                } else {
+                    Text("— \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more needed")
+                        .foregroundColor(.orange)
+                }
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(Color.black.opacity(0.7))
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 4)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.top, 18)
+            .padding(.leading, 20)
+            //end
 
             // Magnify overlay
             if let evidence = magnifyingEvidence,
@@ -435,6 +434,8 @@ struct CaseBoardView: View {
             }
 
             VStack(alignment: .trailing, spacing: 12) {
+
+
                 if showingGuardHint {
                     AnalysisGuardHintView(
                         hintText: currentGuardHint,
@@ -469,7 +470,7 @@ struct CaseBoardView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            .padding(.trailing, 22)
+            .padding(.trailing, 20)
             .padding(.bottom, 18)
             //come here 1
             
