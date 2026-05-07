@@ -6,6 +6,9 @@ struct Act3AnalysisView: View {
     @State private var lightsOn = false
     @State private var showBoard = false
     @State private var switchHovered = false
+    @State private var showingRoomGuard = true
+    @State private var roomGuardText = "Look around carefully. Hover over anything that catches your eyes and click to investigate."
+    @State private var hasStartedRoomSound = false
 
     var body: some View {
         ZStack {
@@ -64,9 +67,35 @@ struct Act3AnalysisView: View {
                     .environmentObject(gameState)
                     .transition(.opacity)
             }
+            if showingRoomGuard {
+                AnalysisGuardHintView(
+                    hintText: roomGuardText,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showingRoomGuard = false
+                        }
+                    }
+                )
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
 
         }
+        
         .clipped()
+        .task {
+            guard !hasStartedRoomSound else { return }
+
+            try? await Task.sleep(nanoseconds: 5_500_000_000)
+
+            guard !hasStartedRoomSound else { return }
+            hasStartedRoomSound = true
+            AudioManager.shared.playDetectiveRoomSound()
+        }
+        .onDisappear {
+            AudioManager.shared.stopDetectiveRoomSound()
+        }
     }
 }
 
@@ -110,7 +139,7 @@ struct CaseBoardView: View {
                             .font(.custom("Times New Roman", size: 14))
                             .foregroundColor(.white.opacity(0.7))
                             .tracking(2)
-                            .padding(.top, 8)
+                            .padding(.top, 25)
 
                         ForEach(displayedEvidence) { evidence in
                             EvidenceBoardItem(
@@ -124,7 +153,7 @@ struct CaseBoardView: View {
                             )
                         }
                     }
-                    .padding(10)
+                    .padding(.leading, 18)
                 }
                 .frame(width: 210)
                 .background(Color.black.opacity(0.5))
@@ -146,6 +175,10 @@ struct CaseBoardView: View {
                         }
                         .buttonStyle(.plain)
                         .padding()
+                    }
+                    if !completedAnalyses.isEmpty {
+                        StickyNotesBoardView(results: completedAnalyses, gameState: gameState)
+                            .padding(.top, 10)
                     }
 
                     Spacer()
@@ -293,16 +326,18 @@ struct CaseBoardView: View {
                     .cornerRadius(8)
 
                 }
-                .padding(.bottom, 10)
+                .padding(.bottom, 25)
 
                 // Right side: Tools
                 VStack(spacing: 6) {
-                    Spacer()
+                    //Spacer()
 
                     Text("TOOLS")
                         .font(.custom("Times New Roman", size: 14))
                         .foregroundColor(.white.opacity(0.7))
                         .tracking(2)
+                        .padding(.top, 20)
+
 
                     Text("Select a tool, then pick evidence and hit Analyze.")
                         .font(.caption2)
@@ -421,10 +456,6 @@ struct CaseBoardView: View {
                             .padding(.vertical, 12)
                             .background(Color.blue)
                             .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -438,6 +469,11 @@ struct CaseBoardView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .padding(.trailing, 22)
+            .padding(.bottom, 18)
+            //come here 1
+            
+            
         }
         .onAppear {
             syncCompletedAnalyses()
@@ -558,11 +594,18 @@ struct CaseBoardView: View {
     }
 
     private func showInitialGuardHintIfNeeded() {
-        // Only show hints when the player asks via the Ask Guard button
+        guard !didShowInitialGuardHint else { return }
+
+        didShowInitialGuardHint = true
+        presentGuardHint("This is your analysis board. Open Wayne's belongings first, then use the tools on the right to analyze the evidence. Select a tool, pick evidence, and hit Analyze.")
     }
 
     private func showLicenseHintIfNeeded() {
-        // Only show hints when the player asks via the Ask Guard button
+        guard gameState.hasEvidence(named: "Wayne's License"),
+              !didShowLicenseGuardHint else { return }
+
+        didShowLicenseGuardHint = true
+        presentGuardHint("Good. Wayne's License is important. Compare it with the Prison Intake Form and look for what doesn't match.")
     }
 
     private func showNextRelevantHint() {
@@ -693,6 +736,7 @@ struct EvidenceBoardItem: View {
                 .buttonStyle(.plain)
             }
         }
+        
     }
 }
 
@@ -749,6 +793,100 @@ struct AnalysisGuardHintView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 180, height: 260)
+        }
+    }
+}
+struct StickyNotesBoardView: View {
+    let results: [AnalysisResult]
+    let gameState: GameState
+
+    private let notePositions: [CGPoint] = [
+        CGPoint(x: 70, y: 60),
+        CGPoint(x: 320, y: 90),
+        CGPoint(x: 500, y: 65),
+        CGPoint(x: 120, y: 250),
+        CGPoint(x: 430, y: 275),
+
+        CGPoint(x: 230, y: 210),
+        CGPoint(x: 560, y: 220),
+        CGPoint(x: 80, y: 370),
+        CGPoint(x: 335, y: 380),
+        CGPoint(x: 610, y: 360)
+    ]
+
+    private let noteRotations: [Double] = [
+        -12, 8, -6, 10, -9,
+        5, -7, 11, -4, 6
+    ]
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
+                if let text = gameState.analysisResults[result.evidence.id.uuidString] {
+                    StickyNoteView(
+                        title: result.evidence.name,
+                        text: text
+                    )
+                    .rotationEffect(.degrees(noteRotations[index % noteRotations.count]))
+                    .position(notePositions[index % notePositions.count])
+                }
+            }
+        }
+        .frame(width: 700, height: 420)
+    }
+}
+
+struct StickyNoteView: View {
+    let title: String
+    let text: String
+
+    @State private var showingFullText = false
+
+    var body: some View {
+        Button {
+            showingFullText = true
+        } label: {
+            ZStack {
+                Image("stickyNote")
+                    .resizable()
+                    .scaledToFit()
+
+                VStack(spacing: 6) {
+                    Text(title)
+                        .font(.custom("Nanum Pen Script", size: 22))
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .lineLimit(1)
+
+                    Text(text)
+                        .font(.custom("Nanum Pen Script", size: 18))
+                        .foregroundColor(.black.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(4)
+                        .padding(.horizontal, 10)
+                }
+                .padding(14)
+            }
+            .frame(width: 160, height: 160)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showingFullText) {
+            VStack(spacing: 18) {
+                Text(title)
+                    .font(.custom("Nanum Pen Script", size: 36))
+                    .fontWeight(.bold)
+
+                Text(text)
+                    .font(.custom("Nanum Pen Script", size: 28))
+                    .multilineTextAlignment(.center)
+                    .padding()
+                
+                Button("Close") {
+                    showingFullText = false
+                }
+                .padding()
+            }
+            .frame(width: 500, height: 350)
         }
     }
 }

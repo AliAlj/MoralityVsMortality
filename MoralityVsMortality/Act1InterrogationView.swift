@@ -239,7 +239,7 @@ class Act1ViewModel: ObservableObject {
         [
             InterrogationQuestion(
                 questionText: "You declared Wayne Michaels dead. Walk me through it.",
-                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him at 3:10 AM."
+                responseText: "The nurse called me. I arrived, assessed the patient. No pulse, no response. I pronounced him dead at 3:10 AM."
             ),
             InterrogationQuestion(
                 questionText: "What was the cause of death?",

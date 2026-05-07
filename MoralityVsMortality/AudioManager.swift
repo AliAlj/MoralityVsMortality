@@ -13,6 +13,7 @@ final class AudioManager {
     private var backgroundPlayer: AVAudioPlayer?
     private var typewriterPlayer: AVAudioPlayer?
     private var screamPlayer: AVAudioPlayer?
+    private var detectiveRoomPlayer: AVAudioPlayer?
 
     private init() {}
 
@@ -73,5 +74,29 @@ final class AudioManager {
         } catch {
             print("Scream sound error: \(error)")
         }
+    }
+    
+    func playDetectiveRoomSound() {
+        guard detectiveRoomPlayer == nil else { return }
+
+        guard let url = Bundle.main.url(forResource: "airconditioner", withExtension: "mov") else {
+            print("airconditioner.mov not found")
+            return
+        }
+
+        do {
+            detectiveRoomPlayer = try AVAudioPlayer(contentsOf: url)
+            detectiveRoomPlayer?.numberOfLoops = -1
+            detectiveRoomPlayer?.volume = 0.45
+            detectiveRoomPlayer?.prepareToPlay()
+            detectiveRoomPlayer?.play()
+        } catch {
+            print("Detective room sound error: \(error)")
+        }
+    }
+
+    func stopDetectiveRoomSound() {
+        detectiveRoomPlayer?.stop()
+        detectiveRoomPlayer = nil
     }
 }
