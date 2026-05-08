@@ -12,6 +12,24 @@
     {
       "idiom" : "universal",
       "scale" : "3x"
+    },
+    {
+      "filename" : "hospitalroom 1.png",
+      "idiom" : "ipad",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "ipad",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "hospitalroom 2.png",
+      "idiom" : "mac",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x"
     }
   ],
   "info" : {

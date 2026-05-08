@@ -123,7 +123,7 @@ struct StartScreenView: View {
     }
 }
 
-// MARK: - Intro Screen
+
 struct IntroScreenView: View {
     @AppStorage("hasSeenIntro") private var hasSeenIntro = false
     @Binding var screen: AppScreen
@@ -284,77 +284,80 @@ struct CharacterSelectView: View {
         ZStack {
             Color.black
                 .ignoresSafeArea()
-
-            VStack(spacing: 30) {
-                Text("CHOOSE YOUR DETECTIVE")
-                    .font(.custom("Times New Roman", size: 36))
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .tracking(4)
-                    .padding(.top, 100)
-
-                HStack(spacing: 170) {
-                    detectiveOption("detectiveOne")
-                        .padding(.top, 150)
-                    detectiveOption("detectiveTwo")
-                        .padding(.top, 150)
-                }
-                .padding(.bottom, 130)
-
-                if showNameField {
-                    VStack(spacing: 16) {
-                        Text("ENTER YOUR NAME")
-                            .font(.custom("Times New Roman", size: 20))
-                            .foregroundColor(.white.opacity(0.8))
-                            .tracking(2)
-
-                        TextField("", text: $playerName)
-                            .textFieldStyle(.plain)
-                            .font(.custom("Times New Roman", size: 24))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .frame(width: 300)
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(8)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                            )
-
-                        if !playerName.trimmingCharacters(in: .whitespaces).isEmpty {
-                            Button {
-                                let name = playerName.trimmingCharacters(in: .whitespaces)
-                                let detective = selectedDetective ?? "detectiveOne"
-                                gameState.resetGame()
-                                gameState.playerName = name
-                                gameState.selectedDetective = detective
-                                UserDefaults.standard.set(name, forKey: "playerName")
-                                UserDefaults.standard.set(detective, forKey: "selectedDetective")
-                                screen = .game
-                            } label: {
-                                Text("BEGIN")
-                                    .font(.custom("Times New Roman", size: 22))
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .tracking(4)
-                                    .padding(.horizontal, 40)
-                                    .padding(.vertical, 12)
-                                    .background(Color.white.opacity(0.15))
-                                    .cornerRadius(10)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                                    )
-                            }
-                            .buttonStyle(.plain)
-                        }
+            ScrollView {
+                
+                VStack(spacing: 30) {
+                    Text("CHOOSE YOUR DETECTIVE")
+                        .font(.custom("Times New Roman", size: 36))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .tracking(4)
+                        .padding(.top, 100)
+                    
+                    HStack(spacing: 170) {
+                        detectiveOption("detectiveOne")
+                            .padding(.top, 150)
+                        detectiveOption("detectiveTwo")
+                            .padding(.top, 150)
                     }
-                    .transition(.opacity)
+                    //                .padding(.bottom, 130)
+                    
+                    if showNameField {
+                        VStack(spacing: 16) {
+                            Text("ENTER YOUR NAME")
+                                .font(.custom("Times New Roman", size: 20))
+                                .foregroundColor(.white.opacity(0.8))
+                                .tracking(2)
+                            
+                            TextField("", text: $playerName)
+                                .textFieldStyle(.plain)
+                                .font(.custom("Times New Roman", size: 24))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .frame(width: 300)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                )
+                            
+                            if !playerName.trimmingCharacters(in: .whitespaces).isEmpty {
+                                Button {
+                                    let name = playerName.trimmingCharacters(in: .whitespaces)
+                                    let detective = selectedDetective ?? "detectiveOne"
+                                    gameState.resetGame()
+                                    gameState.playerName = name
+                                    gameState.selectedDetective = detective
+                                    UserDefaults.standard.set(name, forKey: "playerName")
+                                    UserDefaults.standard.set(detective, forKey: "selectedDetective")
+                                    screen = .game
+                                } label: {
+                                    Text("BEGIN")
+                                        .font(.custom("Times New Roman", size: 22))
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                        .tracking(4)
+                                        .padding(.horizontal, 40)
+                                        .padding(.vertical, 12)
+                                        .background(Color.white.opacity(0.15))
+                                        .cornerRadius(10)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .transition(.opacity)
+                   
+                    }
+                    
+//                    Spacer()
                 }
-
-                Spacer()
             }
         }
     }

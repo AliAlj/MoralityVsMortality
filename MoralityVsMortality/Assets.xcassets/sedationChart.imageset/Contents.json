@@ -12,6 +12,24 @@
     {
       "idiom" : "universal",
       "scale" : "3x"
+    },
+    {
+      "filename" : "sedationChart 1.jpg",
+      "idiom" : "ipad",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "ipad",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "sedationChart 2.jpg",
+      "idiom" : "mac",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "mac",
+      "scale" : "2x"
     }
   ],
   "info" : {

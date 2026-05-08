@@ -30,6 +30,20 @@ final class AudioManager: ObservableObject {
             applySoundEffectsVolume()
         }
     }
+    
+    private func configureAudioSession() {
+        #if os(iOS) || os(tvOS) || os(watchOS)
+        do {
+            // Use .playback to ensure audio is audible even if the device is muted.
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Audio session configuration error: \(error)")
+        }
+        #else
+        // AVAudioSession is unavailable on macOS; no configuration needed.
+        #endif
+    }
 
     private var backgroundPlayer: AVAudioPlayer?
     private var typewriterPlayer: AVAudioPlayer?
@@ -49,6 +63,7 @@ final class AudioManager: ObservableObject {
         let storedEffectsVolume = defaults.object(forKey: Self.soundEffectsVolumeKey) as? Float
         musicVolume = storedMusicVolume ?? 1.0
         soundEffectsVolume = storedEffectsVolume ?? 1.0
+        configureAudioSession()
     }
 
     func playBackgroundMusic() {
@@ -73,12 +88,15 @@ final class AudioManager: ObservableObject {
     func playTypewriter() {
         guard typewriterPlayer == nil else { return }
 
-        guard let url = Bundle.main.url(forResource: "typewriterTrim", withExtension: "mov") else {
+        guard let url = Bundle.main.url(forResource: "typewriterTrim", withExtension: "mp3") else {
             print("typewriterTrim.mov not found")
             return
         }
 
         do {
+            #if os(iOS) || os(tvOS) || os(watchOS)
+            try? AVAudioSession.sharedInstance().setActive(true)
+            #endif
             typewriterPlayer = try AVAudioPlayer(contentsOf: url)
             typewriterPlayer?.numberOfLoops = -1
             typewriterPlayer?.volume = typewriterBaseVolume * soundEffectsVolume
@@ -100,6 +118,9 @@ final class AudioManager: ObservableObject {
         }
 
         do {
+            #if os(iOS) || os(tvOS) || os(watchOS)
+            try? AVAudioSession.sharedInstance().setActive(true)
+            #endif
             screamPlayer = try AVAudioPlayer(contentsOf: url)
             screamPlayer?.numberOfLoops = 0
             screamPlayer?.volume = screamBaseVolume * soundEffectsVolume
@@ -113,12 +134,15 @@ final class AudioManager: ObservableObject {
     func playDetectiveRoomSound() {
         guard detectiveRoomPlayer == nil else { return }
 
-        guard let url = Bundle.main.url(forResource: "airconditioner", withExtension: "mov") else {
+        guard let url = Bundle.main.url(forResource: "airconditioner", withExtension: "mp3") else {
             print("airconditioner.mov not found")
             return
         }
 
         do {
+            #if os(iOS) || os(tvOS) || os(watchOS)
+            try? AVAudioSession.sharedInstance().setActive(true)
+            #endif
             detectiveRoomPlayer = try AVAudioPlayer(contentsOf: url)
             detectiveRoomPlayer?.numberOfLoops = -1
             detectiveRoomPlayer?.volume = detectiveRoomBaseVolume * soundEffectsVolume
@@ -142,5 +166,6 @@ final class AudioManager: ObservableObject {
         typewriterPlayer?.volume = typewriterBaseVolume * soundEffectsVolume
         screamPlayer?.volume = screamBaseVolume * soundEffectsVolume
         detectiveRoomPlayer?.volume = detectiveRoomBaseVolume * soundEffectsVolume
+        print("Sound effects volume applied. Effective typewriter: \(typewriterBaseVolume * soundEffectsVolume), scream: \(screamBaseVolume * soundEffectsVolume), detective: \(detectiveRoomBaseVolume * soundEffectsVolume)")
     }
 }
