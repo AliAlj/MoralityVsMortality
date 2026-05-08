@@ -6,6 +6,9 @@ struct Act3AnalysisView: View {
     @State private var lightsOn = false
     @State private var showBoard = false
     @State private var switchHovered = false
+    @State private var showingRoomGuard = true
+    @State private var roomGuardText = "Look around carefully. Hover over anything that catches your eyes and click to investigate."
+    @State private var hasStartedRoomSound = false
 
     var body: some View {
         ZStack {
@@ -64,9 +67,35 @@ struct Act3AnalysisView: View {
                     .environmentObject(gameState)
                     .transition(.opacity)
             }
+            if showingRoomGuard {
+                AnalysisGuardHintView(
+                    hintText: roomGuardText,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showingRoomGuard = false
+                        }
+                    }
+                )
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
 
         }
+        
         .clipped()
+        .task {
+            guard !hasStartedRoomSound else { return }
+
+            try? await Task.sleep(nanoseconds: 5_500_000_000)
+
+            guard !hasStartedRoomSound else { return }
+            hasStartedRoomSound = true
+            AudioManager.shared.playDetectiveRoomSound()
+        }
+        .onDisappear {
+            AudioManager.shared.stopDetectiveRoomSound()
+        }
     }
 }
 
@@ -106,11 +135,12 @@ struct CaseBoardView: View {
                 // Left side: Evidence on the board
                 ScrollView {
                     VStack(spacing: 8) {
+                        //Spacer()
                         Text("EVIDENCE")
                             .font(.custom("Times New Roman", size: 14))
                             .foregroundColor(.white.opacity(0.7))
                             .tracking(2)
-                            .padding(.top, 8)
+                            .padding(.top, 25)
 
                         ForEach(displayedEvidence) { evidence in
                             EvidenceBoardItem(
@@ -124,7 +154,8 @@ struct CaseBoardView: View {
                             )
                         }
                     }
-                    .padding(10)
+                    .padding(.top, 25)
+                    .padding(.leading, 18)
                 }
                 .frame(width: 210)
                 .background(Color.black.opacity(0.5))
@@ -146,6 +177,10 @@ struct CaseBoardView: View {
                         }
                         .buttonStyle(.plain)
                         .padding()
+                    }
+                    if !completedAnalyses.isEmpty {
+                        StickyNotesBoardView(results: completedAnalyses, gameState: gameState)
+                            .padding(.top, 10)
                     }
 
                     Spacer()
@@ -275,82 +310,81 @@ struct CaseBoardView: View {
 
                     Spacer()
 
-                    // Progress
-                    HStack {
-                        Text("Analyses: \(gameState.analysisResults.count)/\(gameState.analysisCompletionTarget)")
-                        if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        } else {
-                            Text("— \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more needed")
-                                .foregroundColor(.orange)
-                        }
-                    }
-                    .font(.caption)
-                    .foregroundColor(.white)
-                    .padding(8)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(8)
+                    // Bottom tool bar
+                    VStack(spacing: 8) {
+                        Text("Select a tool, then pick evidence and hit Analyze.")
+                            .font(.callout)
+                            .foregroundColor(.white.opacity(0.6))
 
-                }
-                .padding(.bottom, 10)
+                        HStack(spacing: 10) {
+                            ForEach(AnalysisTool.allCases.filter { $0 != .magnify }, id: \.rawValue) { tool in
+                                Button {
+                                    selectedTool = tool
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: tool.icon)
+                                            .font(.title3)
 
-                // Right side: Tools
-                VStack(spacing: 6) {
-                    Spacer()
-
-                    Text("TOOLS")
-                        .font(.custom("Times New Roman", size: 14))
-                        .foregroundColor(.white.opacity(0.7))
-                        .tracking(2)
-
-                    Text("Select a tool, then pick evidence and hit Analyze.")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.5))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 4)
-                        .padding(.bottom, 4)
-
-                    ForEach(AnalysisTool.allCases.filter { $0 != .magnify }, id: \.rawValue) { tool in
-                        Button {
-                            selectedTool = tool
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: tool.icon)
-                                    .font(.caption)
-                                    .frame(width: 20)
-                                    .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.6))
-                                Text(tool.rawValue)
-                                    .font(.caption2)
-                                    .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.6))
-                                Spacer()
+                                        Text(tool.rawValue)
+                                            .font(.callout)
+                                            .fontWeight(.semibold)
+                                    }
+                                    .foregroundColor(selectedTool == tool ? .white : .white.opacity(0.7))
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 12)
+                                    .background(selectedTool == tool ? Color.blue.opacity(0.65) : Color.black.opacity(0.55))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .frame(maxWidth: .infinity)
-                            .background(selectedTool == tool ? Color.blue.opacity(0.6) : Color.white.opacity(0.1))
-                            .cornerRadius(6)
                         }
-                        .buttonStyle(.plain)
-                    }
 
-                    // Tool description
-                    if let tool = selectedTool {
-                        Text(tool.description)
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .padding(6)
-                            .background(Color.white.opacity(0.05))
-                            .cornerRadius(6)
+                        if let tool = selectedTool {
+                            Text(tool.description)
+                                .font(.caption2)
+                                .foregroundColor(.white.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: 500)
+                        }
                     }
+                    .padding(10)
+                    .background(Color.black.opacity(0.65))
+                    .shadow(color: .black.opacity(0.85), radius: 12, x: 0, y: 5)                    .cornerRadius(12)
+                    .padding(.bottom, 8)
 
-                    Spacer()
                 }
-                .frame(width: 150)
-                .padding(10)
-                .background(Color.black.opacity(0.5))
+                .padding(.bottom, 25)
+                .padding(.trailing,120)
+
+                
             }
+            // Analysis counter at top center
+            HStack {
+                Text("Analyses: \(gameState.analysisResults.count)/\(gameState.analysisCompletionTarget)")
+
+                if gameState.analysisResults.count >= gameState.analysisCompletionTarget {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                } else {
+                    Text("— \(max(0, gameState.analysisCompletionTarget - gameState.analysisResults.count)) more needed")
+                        .foregroundColor(.orange)
+                }
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(Color.black.opacity(0.7))
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.8), radius: 8, x: 0, y: 4)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.top, 18)
+            .padding(.leading, 20)
+            //end
 
             // Magnify overlay
             if let evidence = magnifyingEvidence,
@@ -400,6 +434,8 @@ struct CaseBoardView: View {
             }
 
             VStack(alignment: .trailing, spacing: 12) {
+
+
                 if showingGuardHint {
                     AnalysisGuardHintView(
                         hintText: currentGuardHint,
@@ -421,10 +457,6 @@ struct CaseBoardView: View {
                             .padding(.vertical, 12)
                             .background(Color.blue)
                             .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
-                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -438,6 +470,11 @@ struct CaseBoardView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .padding(.trailing, 20)
+            .padding(.bottom, 18)
+            //come here 1
+            
+            
         }
         .onAppear {
             syncCompletedAnalyses()
@@ -558,11 +595,18 @@ struct CaseBoardView: View {
     }
 
     private func showInitialGuardHintIfNeeded() {
-        // Only show hints when the player asks via the Ask Guard button
+        guard !didShowInitialGuardHint else { return }
+
+        didShowInitialGuardHint = true
+        presentGuardHint("This is your analysis board. Open Wayne's belongings first, then use the tools on the right to analyze the evidence. Select a tool, pick evidence, and hit Analyze.")
     }
 
     private func showLicenseHintIfNeeded() {
-        // Only show hints when the player asks via the Ask Guard button
+        guard gameState.hasEvidence(named: "Wayne's License"),
+              !didShowLicenseGuardHint else { return }
+
+        didShowLicenseGuardHint = true
+        presentGuardHint("Good. Wayne's License is important. Compare it with the Prison Intake Form and look for what doesn't match.")
     }
 
     private func showNextRelevantHint() {
@@ -693,6 +737,7 @@ struct EvidenceBoardItem: View {
                 .buttonStyle(.plain)
             }
         }
+        
     }
 }
 
@@ -749,6 +794,100 @@ struct AnalysisGuardHintView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 180, height: 260)
+        }
+    }
+}
+struct StickyNotesBoardView: View {
+    let results: [AnalysisResult]
+    let gameState: GameState
+
+    private let notePositions: [CGPoint] = [
+        CGPoint(x: 70, y: 60),
+        CGPoint(x: 320, y: 90),
+        CGPoint(x: 500, y: 65),
+        CGPoint(x: 120, y: 250),
+        CGPoint(x: 430, y: 275),
+
+        CGPoint(x: 230, y: 210),
+        CGPoint(x: 560, y: 220),
+        CGPoint(x: 80, y: 370),
+        CGPoint(x: 335, y: 380),
+        CGPoint(x: 610, y: 360)
+    ]
+
+    private let noteRotations: [Double] = [
+        -12, 8, -6, 10, -9,
+        5, -7, 11, -4, 6
+    ]
+
+    var body: some View {
+        ZStack {
+            ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
+                if let text = gameState.analysisResults[result.evidence.id.uuidString] {
+                    StickyNoteView(
+                        title: result.evidence.name,
+                        text: text
+                    )
+                    .rotationEffect(.degrees(noteRotations[index % noteRotations.count]))
+                    .position(notePositions[index % notePositions.count])
+                }
+            }
+        }
+        .frame(width: 700, height: 420)
+    }
+}
+
+struct StickyNoteView: View {
+    let title: String
+    let text: String
+
+    @State private var showingFullText = false
+
+    var body: some View {
+        Button {
+            showingFullText = true
+        } label: {
+            ZStack {
+                Image("stickyNote")
+                    .resizable()
+                    .scaledToFit()
+
+                VStack(spacing: 6) {
+                    Text(title)
+                        .font(.custom("Nanum Pen Script", size: 22))
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .lineLimit(1)
+
+                    Text(text)
+                        .font(.custom("Nanum Pen Script", size: 18))
+                        .foregroundColor(.black.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(4)
+                        .padding(.horizontal, 10)
+                }
+                .padding(14)
+            }
+            .frame(width: 160, height: 160)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showingFullText) {
+            VStack(spacing: 18) {
+                Text(title)
+                    .font(.custom("Nanum Pen Script", size: 36))
+                    .fontWeight(.bold)
+
+                Text(text)
+                    .font(.custom("Nanum Pen Script", size: 28))
+                    .multilineTextAlignment(.center)
+                    .padding()
+                
+                Button("Close") {
+                    showingFullText = false
+                }
+                .padding()
+            }
+            .frame(width: 500, height: 350)
         }
     }
 }

@@ -25,7 +25,6 @@ struct StartScreenView: View {
             VStack(spacing: 16) {
                 Spacer()
 
-                // Start / New Game button (always shown, on top)
                 Button {
                     if hasCompletedSetup {
                         showNewGameConfirm = true
@@ -41,7 +40,6 @@ struct StartScreenView: View {
                 }
                 .buttonStyle(.plain)
 
-                // Continue button (only if save exists)
                 if hasCompletedSetup {
                     Button {
                         screen = .game
@@ -58,7 +56,6 @@ struct StartScreenView: View {
             }
             .offset(y: buttonYOffset)
 
-            // New game confirmation dialog
             if showNewGameConfirm {
                 ZStack {
                     Color.black.opacity(0.7)
@@ -136,14 +133,12 @@ struct IntroScreenView: View {
     @State private var isTyping = false
     @State private var showContinue = false
     @State private var typingTask: Task<Void, Never>?
+    @State private var hasPlayedScream = false
 
     private let pages: [String] = [
         "3:00 AM, Monday, March 9th\n\nA sharp gasp cuts through the hospital corridor.\n\nWayne Michaels is found unresponsive.\n\nMinutes later, he is pronounced dead.",
-
         "Wayne was a prison inmate serving a life sentence for attempted murder.\n\nOne week ago, he was transferred to the prison hospital following a violent altercation.\n\nHis condition was stable.\nHe was scheduled for a routine surgical procedure in the morning.",
-
         "The attending surgeon: Dr. Victor Smith\nThe nurse on duty: Kathy Williams\n\nAccording to the official report,\nWayne suffered sudden cardiac arrest.\n\nCase closed.",
-
         "But something doesn't add up.\n\nYou've been hired to find out what really happened."
     ]
 
@@ -162,7 +157,7 @@ struct IntroScreenView: View {
 
                 VStack(spacing: 0) {
                     Text("YOU'RE HIRED")
-                        .font(.custom("Impact", size: 35))
+                        .font(.custom("Times New Roman", size: 35))
                         .fontWeight(.heavy)
                         .foregroundColor(.white)
                         .tracking(4)
@@ -172,7 +167,7 @@ struct IntroScreenView: View {
                         .frame(height: 50)
 
                     Text(displayedText)
-                        .font(.custom("Impact", size: 25))
+                        .font(.custom("Times New Roman", size: 25))
                         .fontWeight(.medium)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
@@ -218,6 +213,7 @@ struct IntroScreenView: View {
         }
         .onDisappear {
             typingTask?.cancel()
+            AudioManager.shared.stopTypewriter()
         }
     }
 
@@ -227,6 +223,14 @@ struct IntroScreenView: View {
         isTyping = true
         showContinue = false
 
+        AudioManager.shared.playTypewriter()
+        if currentPage == 0 && !hasPlayedScream {
+            hasPlayedScream = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                AudioManager.shared.playScreamOnce()
+            }
+        }
+
         typingTask?.cancel()
         typingTask = Task {
             for character in text {
@@ -235,7 +239,11 @@ struct IntroScreenView: View {
                 let delay: UInt64 = character == "\n" ? 80_000_000 : 30_000_000
                 try? await Task.sleep(nanoseconds: delay)
             }
+
             guard !Task.isCancelled else { return }
+
+            AudioManager.shared.stopTypewriter()
+
             isTyping = false
             withAnimation(.easeIn(duration: 0.5)) {
                 showContinue = true
@@ -245,6 +253,7 @@ struct IntroScreenView: View {
 
     private func skipTyping() {
         typingTask?.cancel()
+        AudioManager.shared.stopTypewriter()
         displayedText = pages[currentPage]
         isTyping = false
         withAnimation(.easeIn(duration: 0.5)) {
@@ -282,12 +291,15 @@ struct CharacterSelectView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .tracking(4)
-                    .padding(.top, 40)
+                    .padding(.top, 100)
 
-                HStack(spacing: 60) {
+                HStack(spacing: 170) {
                     detectiveOption("detectiveOne")
+                        .padding(.top, 150)
                     detectiveOption("detectiveTwo")
+                        .padding(.top, 150)
                 }
+                .padding(.bottom, 130)
 
                 if showNameField {
                     VStack(spacing: 16) {
@@ -378,6 +390,7 @@ enum AppScreen {
     case characterSelect
     case game
 }
+
 #Preview("Start Button") {
     StartScreenPreviewHost(hasSeenIntro: false, playerName: "")
         .frame(width: 1100, height: 750)
